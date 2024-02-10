@@ -3,19 +3,16 @@
 
 import sys
 import pygame
-import threading
 
 from globalVariables import globalVariables
 from jumper import jumper
 from systemFunctions import drawGameAndUpdateJumperPosition, drawDeathScreen, drawWinScreen, drawHomeScreen, drawSelectLevel
-from gameClient import manageGameClient
+from communications import createGameClient, shutdownGameClient, sendAMessage
 
 clock = pygame.time.Clock()
 
 pygame.init()
-t1 = threading.Thread(target=manageGameClient, daemon=True)
-t1.start()
-print("Continuing main thread")
+createGameClient()
 
 while True:
   while globalVariables["veiwingHomeScreen"]:
@@ -25,9 +22,8 @@ while True:
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         globalVariables["veiwingHomeScreen"] = False
+        shutdownGameClient()
         pygame.quit()
-        
-        globalVariables["killClient"] = True
         sys.exit()
       if event.type == pygame.MOUSEBUTTONDOWN:
         checkMouse = True
@@ -52,8 +48,8 @@ while True:
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         globalVariables["playingGame"] = False
+        shutdownGameClient()
         pygame.quit()
-        globalVariables["killClient"] = True
         sys.exit()
 
     if jumper.alive and not jumper.levelWon:

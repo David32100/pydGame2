@@ -3,6 +3,7 @@ import pygame
 
 from globalVariables import globalVariables
 from levels import levels
+from communications import shutdownGameClient
 
 def writeText(font: str, size: int, text: str, color: tuple,  textPosition: tuple, background: tuple = None):
   font = pygame.font.SysFont(font, size)
@@ -124,8 +125,8 @@ def drawSelectLevel():
       if event.type == pygame.QUIT:
         selectingLevel = False
         globalVariables["veiwingHomeScreen"] = False
+        shutdownGameClient()
         pygame.quit()
-        globalVariables["killClient"] = True
         sys.exit()
       if event.type == pygame.MOUSEBUTTONDOWN:
         checkMouse = True

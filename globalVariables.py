@@ -15,6 +15,5 @@ globalVariables = {
   "playingGame": False,
   "veiwingHomeScreen": True,
   "discoveredLevels": 10,
-  "party": 0,
-  "killClient": False
+  "party": 0
 }
