@@ -15,8 +15,10 @@ def sendAMessage(message):
 
 def shutdownGameClient():
   shutDownClient(client)
+  client = None
 
-def receiveAMessage():
-  messageReceived, addressReceived = receiveMessage(client)
-  decodedMessageReceived = eval(messageReceived)
+async def receiveMessages():
+  messageReceived, addressReceived = await receiveMessage(client)
+
+  decodedMessageReceived = messageReceived.decode("utf-8")
   return decodedMessageReceived

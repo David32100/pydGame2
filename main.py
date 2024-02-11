@@ -3,14 +3,16 @@
 
 import sys
 import pygame
+import asyncio
 
 from globalVariables import globalVariables
 from jumper import jumper
 from systemFunctions import drawGameAndUpdateJumperPosition, drawDeathScreen, drawWinScreen, drawHomeScreen, drawSelectLevel
-from communications import createGameClient, shutdownGameClient, sendAMessage
+from communications import createGameClient, shutdownGameClient, sendAMessage, receiveMessages
 
 pygame.init()
 createGameClient()
+asyncio.run(receiveMessages())
 clock = pygame.time.Clock()
 
 while True:

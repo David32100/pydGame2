@@ -7,8 +7,8 @@ def createUdpClient():
 def sendMessage(client, message: bytes, host: str, port: int):
   client.sendto(message, (host, port))
 
-def receiveMessage(client):
-  dataReceived = client.recvfrom(1024)
+async def receiveMessage(client):
+  dataReceived = await client.recvfrom(1024)
   return dataReceived[0], dataReceived[1]
 
 def shutDownClient(client):
