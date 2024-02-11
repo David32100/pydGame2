@@ -39,9 +39,7 @@ def manageGameServer():
       messageReceived, addressReceived = receiveMessage(socket1)
 
       sendMessage(socket1, b"Hi", addressReceived)
-  except OSError as e:
-    print(e)
-
+  except:
     try:
       socket1.shutdown(socket.SHUT_RDWR)
       socket1.close()

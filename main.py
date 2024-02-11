@@ -4,15 +4,15 @@
 import pygame
 import threading
 
-from globalVariables import globalVariables, updateGlobalVariables
+from globalVariables import globalVariables
 from jumper import jumper
-from systemFunctions import drawGameAndUpdateJumperPosition, drawDeathScreen, drawWinScreen, drawHomeScreen, drawSelectLevel, shutdownGame
+from systemFunctions import drawGameAndUpdateJumperPosition, drawDeathScreen, drawWinScreen, drawHomeScreen, drawSelectLevel, shutdownGame, updateGlobalVariables
 from communications import createGameClient, sendAMessage, receiveMessages
 
 updateGlobalVariables()
-pygame.init()
 createGameClient()
 threading.Thread(target=receiveMessages).start()
+pygame.init()
 
 clock = pygame.time.Clock()
 

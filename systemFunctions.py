@@ -1,7 +1,8 @@
 import sys
 import pygame
+import json
 
-from globalVariables import globalVariables, updateGameProgress
+from globalVariables import globalVariables, savedVariables
 from levels import levels
 from communications import shutdownGameClient, sendAMessage
 
@@ -180,3 +181,44 @@ def drawSelectLevel():
           writeText("freesansbold.ttf", 30, str(levelIndex), (255, 255, 255), (((levelIndex - 1) * 75) + 48 - levelScroll, (globalVariables["screenHeight"] / 2) + 88))
       
     pygame.display.flip()
+
+def readAndWriteFile(file: str, itemToWrite="", createFile=False):
+  if createFile:
+    with open(file, "w") as file:
+      file.write(itemToWrite)
+
+    return itemToWrite
+
+  else:
+    with open(file, "r+") as file:
+      fileContents = file.read()
+      
+      if itemToWrite != "":
+        file.seek(0)
+        file.write(itemToWrite)
+
+    return fileContents
+  
+def getSavedData(username:str):
+  try:
+    savedData = json.loads(readAndWriteFile("'" + username + "'GameProgress.JSON"))
+  except FileNotFoundError:
+    savedData = json.loads(readAndWriteFile("'" + username + "'GameProgress.JSON", itemToWrite=json.dumps(savedVariables), createFile=True))
+
+  return savedData
+
+def saveData(username: str):
+  for key in list(savedVariables.keys()):
+    savedVariables[key] = globalVariables[key]
+
+  readAndWriteFile("'" + username + "'GameProgress.JSON", json.dumps(savedVariables))
+
+def updateGlobalVariables():
+  savedVariables = getSavedData(str(globalVariables["username"]))
+
+  if savedVariables != "":
+    for key in savedVariables:
+      globalVariables[key] = savedVariables[key]
+
+def updateGameProgress():
+  saveData(str(globalVariables["username"]))
