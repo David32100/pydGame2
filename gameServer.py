@@ -10,29 +10,20 @@ def createUdpServer(host: str, port: int):
   return newSocket
 
 def receiveMessage(server):
-  dataReceived = server.recvfrom(1024)
-  messageReceived = dataReceived[0].decode("utf-8")[1:-1].split(", ")
-  trueMessageReceived = []
-
-  for partOfMessage in messageReceived:
-    if partOfMessage.isdigit():
-      trueMessageReceived.append(int(partOfMessage))
-    else:
-      trueMessageReceived.append(partOfMessage)
-
-  addressReceived = dataReceived[1]
+  messageReceived, addressReceived = server.recvfrom(1024)
+  decodedMessageReceived = eval(messageReceived.decode("utf-8"))
   print("Received message:", messageReceived, "From:", addressReceived)
-  return trueMessageReceived, addressReceived
+  return decodedMessageReceived, addressReceived
 
 def sendMessage(server, message: bytes, address):
   print("Sending message:", message, "To:", address)
   server.sendto(message, address)
 
 def askToStopServer(server):
-  stop = input("Stop Server (Y):")
+  stop = input("Stop Server (Y): \n")
 
   while stop != "Y":
-    stop = input("Stop Server (Y):")
+    stop = input("Stop Server (Y): \n")
 
   print("Shutting down server...")
   server.shutdown(socket.SHUT_RDWR)
@@ -51,7 +42,9 @@ def manageGameServer():
         sendMessage(socket1, [messageReceived[1], messageReceived[2]].encode("utf-8"), addressReceived)
       else:
         sendMessage(socket1, b"Hi", addressReceived)
-  except:
+  except OSError as e:
+    print(e)
+
     try:
       socket1.shutdown(socket.SHUT_RDWR)
       socket1.close()

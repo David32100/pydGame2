@@ -9,10 +9,9 @@ from jumper import jumper
 from systemFunctions import drawGameAndUpdateJumperPosition, drawDeathScreen, drawWinScreen, drawHomeScreen, drawSelectLevel
 from communications import createGameClient, shutdownGameClient, sendAMessage
 
-clock = pygame.time.Clock()
-
 pygame.init()
 createGameClient()
+clock = pygame.time.Clock()
 
 while True:
   while globalVariables["veiwingHomeScreen"]:
@@ -22,6 +21,7 @@ while True:
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         globalVariables["veiwingHomeScreen"] = False
+        sendAMessage({"action":"updateStatus","contents":{"Username": "Player1", "Status":"Offline"}})
         shutdownGameClient()
         pygame.quit()
         sys.exit()
@@ -33,6 +33,8 @@ while True:
     if nextScreenToDraw == "Game":
       globalVariables["veiwingHomeScreen"] = False
       globalVariables["playingGame"] = True
+      sendAMessage({"action":"joinGame","contents":{"Username": "Player1", "Position":(123, 456), "lobby": 10}})
+      sendAMessage({"action":"updateStatus","contents":{"Username": "Player1", "Status":"In game"}})
     elif nextScreenToDraw == "Level":
       drawSelectLevel()
     elif nextScreenToDraw == "Party":
@@ -48,6 +50,8 @@ while True:
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         globalVariables["playingGame"] = False
+        sendAMessage({"action":"leaveGame","contents":{"Username": "Player1", "lobby":10}})
+        sendAMessage({"action":"updateStatus","contents":{"Username": "Player1", "Status":"Offline"}})
         shutdownGameClient()
         pygame.quit()
         sys.exit()
