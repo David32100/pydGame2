@@ -59,11 +59,13 @@ class Jumper():
         self.alive = False
 
     if deltaX < 0:
-      if self.jumperX + deltaX > 0 and not self.__checkCollision()["Left"]:
+      if self.jumperX + deltaX > 0 and not self.__checkCollision(xDisplacement=deltaX)["Left"]:
         self.jumperX += deltaX
     elif deltaX > 0:
-      if self.jumperX + self.jumperWidth + deltaX < globalVariables["screenWidth"] and not self.__checkCollision()["Right"]:
+      if self.jumperX + self.jumperWidth + deltaX < globalVariables["screenWidth"] and not self.__checkCollision(xDisplacement=deltaX)["Right"]:
         self.jumperX += deltaX
+
+    self.jumperXWithScroll = self.jumperX + globalVariables["scroll"]
 
   def moveLeft(self, speed: float):
     if self.alive:
@@ -91,9 +93,9 @@ class Jumper():
         self.jumpTimer = 1
     
 
-  def __checkCollision(self):
+  def __checkCollision(self, xDisplacement=0, yDisplacement=0):
     if self.jumperY + self.jumperHeight + self.gravity < globalVariables["screenHeight"]:
-      return collisionCheck(self.jumperX, self.jumperY - (self.jumperHeadRadius * 2), self.jumperWidth, (self.jumperHeight + (self.jumperHeadRadius * 2)), self.gravity)
+      return collisionCheck(self.jumperX + xDisplacement, self.jumperY - (self.jumperHeadRadius * 2) + yDisplacement, self.jumperWidth, (self.jumperHeight + (self.jumperHeadRadius * 2)), self.gravity)
     else:
       self.alive = False
       return {"Top": True, "Bottom": True, "Left": True, "Right": True}

@@ -1,7 +1,7 @@
 import sys
 import pygame
 
-from globalVariables import globalVariables
+from globalVariables import globalVariables, updateGameProgress
 from levels import levels
 from communications import shutdownGameClient, sendAMessage
 
@@ -27,6 +27,13 @@ def checkIfTouchingColor(spriteX, spriteY, spriteWidth, spriteHeight, colorToChe
       
   return False
 
+def shutdownGame():
+  sendAMessage({"action":"updateStatus","contents":{"Username": globalVariables["username"], "Status":"Offline"}})
+  shutdownGameClient()
+  pygame.quit()
+  updateGameProgress()
+  sys.exit()
+
 def drawGameAndUpdateJumperPosition(jumper):
   globalVariables["screen"].fill((0, 128, 128))
   
@@ -43,7 +50,7 @@ def drawGameAndUpdateJumperPosition(jumper):
   jumper.scrollScreen(jumper.speed)
   jumper.experienceGravity()
   jumper.winLevelIfTouchingGoal()
-  sendAMessage({"action":"updatePlayer", "contents":{"Username":"player1", "Lobby":10, "postion":(123, 456)}})
+  sendAMessage({"action":"updatePlayer", "contents":{"Username":globalVariables["username"], "Lobby":globalVariables["lobby"], "postion":(jumper.jumperXWithScroll, jumper.jumperY)}})
   jumper.drawJumper()
 
 def drawDeathScreen(jumper):
@@ -55,13 +62,13 @@ def drawDeathScreen(jumper):
 
   if pressedKeys[pygame.K_SPACE]:
     jumper.resetJumper()
-    sendAMessage({"action":"updatePlayer", "contents":{"Username":"player1", "Lobby":10, "postion":(123, 456)}})
+    sendAMessage({"action":"updatePlayer", "contents":{"Username": globalVariables["username"], "Lobby": globalVariables["lobby"], "postion":(jumper.jumperXWithScroll, jumper.jumperY)}})
   if pressedKeys[pygame.K_b] and pressedKeys[pygame.K_y] and pressedKeys[pygame.K_e]:
     globalVariables["veiwingHomeScreen"] = True
     globalVariables["playingGame"] = False
     jumper.resetJumper()
-    sendAMessage({"action":"leaveGame", "contents":{"Username":"player1", "Lobby":10}})
-    sendAMessage({"action":"updateStatus", "contents":{"Username":"player1", "status":"Not in game"}})
+    sendAMessage({"action":"leaveGame", "contents":{"Username":globalVariables["username"], "Lobby":globalVariables["lobby"]}})
+    sendAMessage({"action":"updateStatus", "contents":{"Username":globalVariables["username"], "status":"Not in game"}})
 
 def drawWinScreen(jumper):
   globalVariables["screen"].fill((127, 127, 0))
@@ -75,13 +82,13 @@ def drawWinScreen(jumper):
 
   if pressedKeys[pygame.K_r]:
     jumper.resetJumper()
-    sendAMessage({"action":"updatePlayer", "contents":{"Username":"player1", "Lobby":10, "postion":(123, 456)}})
+    sendAMessage({"action":"updatePlayer", "contents":{"Username":globalVariables["username"], "Lobby":globalVariables["lobby"], "postion":(jumper.jumperXWithScroll, jumper.jumperY)}})
   if pressedKeys[pygame.K_b] and pressedKeys[pygame.K_y] and pressedKeys[pygame.K_e]:
     globalVariables["veiwingHomeScreen"] = True
     globalVariables["playingGame"] = False
     jumper.resetJumper()
-    sendAMessage({"action":"leaveGame", "contents":{"Username":"player1", "Lobby":10}})
-    sendAMessage({"action":"updateStatus", "contents":{"Username":"player1", "status":"Not in game"}})
+    sendAMessage({"action":"leaveGame", "contents":{"Username":globalVariables["username"], "Lobby":globalVariables["lobby"]}})
+    sendAMessage({"action":"updateStatus", "contents":{"Username":globalVariables["username"], "status":"Not in game"}})
 
 def drawHomeScreen(checkMouseEvent: bool) -> str:
   globalVariables["screen"].fill((0, 255, 255))
@@ -132,10 +139,7 @@ def drawSelectLevel():
       if event.type == pygame.QUIT:
         selectingLevel = False
         globalVariables["veiwingHomeScreen"] = False
-        sendAMessage({"action":"updateStatus","contents":{"Username": "Player1", "Status":"Offline"}})
-        shutdownGameClient()
-        pygame.quit()
-        sys.exit()
+        shutdownGame()
       if event.type == pygame.MOUSEBUTTONDOWN:
         checkMouse = True
 
