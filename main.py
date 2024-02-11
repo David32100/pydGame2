@@ -14,6 +14,7 @@ createGameClient()
 threading.Thread(target=receiveMessages).start()
 pygame.init()
 
+sendAMessage({"action":"joinServer","contents":{"Username": globalVariables["username"]}})
 clock = pygame.time.Clock()
 
 while True:

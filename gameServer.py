@@ -1,6 +1,7 @@
 import socket
 import threading
 import time
+import json
 
 def createUdpServer(host: str, port: int):
   print("Creating server...")
@@ -11,7 +12,7 @@ def createUdpServer(host: str, port: int):
 
 def receiveMessage(server):
   messageReceived, addressReceived = server.recvfrom(1024)
-  decodedMessageReceived = messageReceived.decode("utf-8")
+  decodedMessageReceived = json.loads(messageReceived.decode("utf-8"))
   print("Received message:", decodedMessageReceived, "From:", addressReceived)
   return decodedMessageReceived, addressReceived
 
@@ -25,9 +26,26 @@ def askToStopServer(server):
   while stop != "Y":
     stop = input("Stop Server (Y): \n")
 
+  shutDownServer(server)  
+
+def shutDownServer(server):
   print("Shutting down server...")
   server.shutdown(socket.SHUT_RDWR)
   server.close()
+
+def runServer(server):
+  playerAddresses = []
+
+  while True:
+      messageReceived, addressReceived = receiveMessage(server)
+
+      if messageReceived["action"] == "joinServer":
+        playerAddresses.append(addressReceived)
+
+      if messageReceived["action"] == "updateStatus" and messageReceived["contents"]["status"] == "Offline":
+        playerAddresses.remove(addressReceived)
+
+      print(playerAddresses)
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848
@@ -35,14 +53,12 @@ def manageGameServer():
   threading.Thread(target=askToStopServer, args=(socket1,)).start()
 
   try:
-    while True:
-      messageReceived, addressReceived = receiveMessage(socket1)
+    runServer(socket1)
+  except OSError as e:
+    print(e)
 
-      sendMessage(socket1, b"Hi", addressReceived)
-  except:
     try:
-      socket1.shutdown(socket.SHUT_RDWR)
-      socket1.close()
+      shutDownServer(socket1)
     except:
       print("Error occured: Server doesn't exist.")
     

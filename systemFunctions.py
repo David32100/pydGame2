@@ -29,7 +29,7 @@ def checkIfTouchingColor(spriteX, spriteY, spriteWidth, spriteHeight, colorToChe
   return False
 
 def shutdownGame():
-  sendAMessage({"action":"updateStatus","contents":{"Username": globalVariables["username"], "Status":"Offline"}})
+  sendAMessage({"action":"updateStatus","contents":{"username": globalVariables["username"], "status":"Offline"}})
   shutdownGameClient()
   pygame.quit()
   updateGameProgress()
