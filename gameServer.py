@@ -11,8 +11,8 @@ def createUdpServer(host: str, port: int):
 
 def receiveMessage(server):
   messageReceived, addressReceived = server.recvfrom(1024)
-  decodedMessageReceived = eval(messageReceived.decode("utf-8"))
-  print("Received message:", messageReceived, "From:", addressReceived)
+  decodedMessageReceived = messageReceived.decode("utf-8")
+  print("Received message:", decodedMessageReceived, "From:", addressReceived)
   return decodedMessageReceived, addressReceived
 
 def sendMessage(server, message: bytes, address):
@@ -38,10 +38,7 @@ def manageGameServer():
     while True:
       messageReceived, addressReceived = receiveMessage(socket1)
 
-      if messageReceived[0] != 0:
-        sendMessage(socket1, [messageReceived[1], messageReceived[2]].encode("utf-8"), addressReceived)
-      else:
-        sendMessage(socket1, b"Hi", addressReceived)
+      sendMessage(socket1, b"Hi", addressReceived)
   except OSError as e:
     print(e)
 
