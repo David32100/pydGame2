@@ -10,15 +10,23 @@ def createGameClient():
   client = createUdpClient()
 
 def sendAMessage(message):
+  global client
   messageToSend = str(message).encode("utf-8")
   sendMessage(client, messageToSend, host, port)
 
 def shutdownGameClient():
+  global client
   shutDownClient(client)
   client = None
 
-async def receiveMessages():
-  messageReceived, addressReceived = await receiveMessage(client)
+def receiveMessages():
+  global client
 
-  decodedMessageReceived = messageReceived.decode("utf-8")
-  return decodedMessageReceived
+  while True:
+    try:
+      messageReceived, addressReceived = receiveMessage(client)
+      decodedMessageReceived = messageReceived.decode("utf-8")
+      yield decodedMessageReceived
+    except OSError as e:
+      print("Failed to receive message:", e)
+      break

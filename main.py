@@ -3,7 +3,7 @@
 
 import sys
 import pygame
-import asyncio
+import threading
 
 from globalVariables import globalVariables
 from jumper import jumper
@@ -12,7 +12,8 @@ from communications import createGameClient, shutdownGameClient, sendAMessage, r
 
 pygame.init()
 createGameClient()
-asyncio.run(receiveMessages())
+threading.Thread(target=receiveMessages).start()
+
 clock = pygame.time.Clock()
 
 while True:
