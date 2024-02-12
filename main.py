@@ -3,10 +3,12 @@
 
 import pygame
 import threading
+import time
 
 from globalVariables import globalVariables
 from jumper import jumper
-from systemFunctions import drawGameAndUpdateJumperPosition, drawDeathScreen, drawWinScreen, drawHomeScreen, drawSelectLevel, shutdownGame, updateGlobalVariables
+from drawingFunctions import  drawGameAndUpdateJumperPosition, drawDeathScreen, drawWinScreen, drawHomeScreen, drawSelectLevel, shutdownGame
+from savingFunctions import updateGlobalVariables
 from communications import createGameClient, sendAMessage, receiveAndManageMessages
 
 updateGlobalVariables()
@@ -35,6 +37,7 @@ while True:
       globalVariables["veiwingHomeScreen"] = False
       globalVariables["playingGame"] = True
       sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"]}})
+      time.sleep(1)
       globalVariables["status"] = "In game"
     elif nextScreenToDraw == "Level":
       drawSelectLevel()

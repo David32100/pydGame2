@@ -6,9 +6,9 @@ screenWidth, screenHeight = 700, 500
 screen = pygame.display.set_mode((screenWidth, screenHeight))
 
 savedVariables = {
-  "currentLevel": 0,
+  "currentLevel": 10,
   "discoveredLevels": 10,
-  "username": "The best player"
+  "username": "The best player2"
 }
 
 globalVariables = {
@@ -26,5 +26,6 @@ globalVariables = {
   "party": 0,
   "username": savedVariables["username"],
   "lobby": None,
-  "status": "Not in game"
+  "status": "Not in game",
+  "playersInLobby": {}
 }

@@ -1,10 +1,10 @@
 import sys
 import pygame
-import json
 
-from globalVariables import globalVariables, savedVariables
+from globalVariables import globalVariables
 from levels import levels
 from communications import shutdownGameClient, sendAMessage
+from savingFunctions import updateGameProgress
 
 def writeText(font: str, size: int, text: str, color: tuple,  textPosition: tuple, background: tuple = None):
   font = pygame.font.SysFont(font, size)
@@ -19,14 +19,6 @@ def writeText(font: str, size: int, text: str, color: tuple,  textPosition: tupl
 
 # All noto fonts: 'notosans', 'notosanslaoui', 'notosansarmenian', 'notosansosmanya', 'notosansadlam', 'notosansrejang', 'notosansphoenician', 'notosanstagbanwa', 'notoserif', 'notosansinscriptionalparthian', 'notosanscjksc', 'notoemoji', 'notosansgujaratiui', 'notosanslimbu', 'notoserifkannada',  'notoseriftelugu', 'notosansphagspa', 'notosanskhmer', 'notosansgujarati', 'notosanslao', 'notosansnko', 'notosansdevanagari',  'notosansmonocjkhk', 'notosansmonocjkkr', 'notosansmonocjkjp', 'notosansgurmukhi', 'notosanslycian', 'notosansmonocjktc', 'notosansmonocjksc', 'notosansogham', 'notosanstamil', 'notosansoriyaui', 'notosanssundanese', 'notosanskannadaui', 'notosanstibetan', 'notosansethiopic',  'notosansthaana', 'notosanscjktc', 'notosansthai', 'notosanscjkjp', 'notosanscjkhk', 'notosanscjkkr', 'notoserifarmenian', 'notoserifmyanmar', 'notosansegyptianhieroglyphs', 'notoserifkhmer', 'notoserifbengali', 'notosansbamum', 'notosansolchiki', 'notosanskhmerui', 'notosanssyriacestrangela', 'notosansgothic', 'notosansbatak', 'notosanscherokee', 'notosansmath', 'notonaskharabicui', 'notosansmyanmarui', 'notosansbuhid', 'notosansbengaliui', 'notosansimperialaramaic', 'notosansdeseret', 'notosansoriya', 'notosanskayahli', 'notoserifmalayalam', 'notonaskharabic', 'notosansarabicui', 'notosanstaiviet', 'notosanstaile', 'notoserifcjkjp', 'notosansgurmukhiui', 'notosansmono', 'notosanscarian', 'notoseriflao', 'notosanstifinagh', 'notosansglagolitic', 'notoserifgeorgian', 'notoserifthai', 'notosanskannada', 'notosanshanunoo', 'notosansdevanagariui', 'notosansmyanmar', 'notosanssinhalaui', 'notosanskharoshthi', 'notosanscham', 'notosansteluguui', 'notosansrunic', 'notosanslepcha', 'notosansbuginese', 'notosansnewtailue', 'notoserifhebrew', 'notosanssinhala', 'notosanslydian', 'notosanskaithi', 'notosanscanadianaboriginal', 'notoserifethiopic', 'notosanstelugu', 'notonastaliqurdu', 'notosansavestan', 'notosansbengali', 'notosanscypriot', 'notosansyi', 'notosanslisu', 'notosanstamilui', 'notosanstagalog', 'notosansinscriptionalpahlavi', 'notosanssaurashtra', 'notosansoldsoutharabian', 'notosanslinearb', 'notosanssamaritan', 'notoserifdevanagari', 'notosanssyriaceastern', 'notosansmeeteimayek', 'notoserifsinhala', 'notosansmalayalamui', 'notoserifcjkkr',  'notosansanatolianhieroglyphs', 'notosansmandaic', 'notosansosage', 'notosanscoptic', 'notosansbalinese',  'notosanssymbols', 'notoserifcjktc', 'notocoloremoji', 'notoserifcjksc', 'notosansolditalic', 'notosansthaiui', 'notosansarabic', 'notosansgeorgian', 'notosansmalayalam', 'notosanssymbols2', 'notoserifgujarati', 'notosansmongolian', 'notosanshebrew', 'notosansoldpersian', 'notosansvai', 'notosanssylotinagri', 'notosansjavanese', 'notosanschakma', 'notosansugaritic', 'notoseriftamil', 'notosanssyriacwestern', 'notosanstaitham', 'notosansbrahmi', 'notosansoldturkic', 'notosanscuneiform', 'notosansshavian'
 # All non-noto fonts: 'lohitodia', 'dejavusansmono', 'dejavuserif', 'tinos', 'arimo', 'googlesans', 'dejavusans', 'caladea', 'wingdings2', 'roboto', 'wingdings3', 'arialnarrow', 'webdings', 'jomolhari', 'nanumgothic', 'georgia', 'carlito', 'cousine', 'verdana', 'tahoma', 'bizudpgothic', 'comicsansms', 'garamond', 'wingdings', 'lohitpunjabi', 'arialblack', 'bizudpmincho', 'ipaexmincho'
-
-def checkIfTouchingColor(spriteX, spriteY, spriteWidth, spriteHeight, colorToCheckFor):
-  for xPos in range(int(spriteX), int(spriteX + spriteWidth)):
-    for yPos in range(int(spriteY), int(spriteY + spriteHeight)):
-      if globalVariables["screen"].get_at((xPos, yPos)) == colorToCheckFor:
-        return True
-      
-  return False
 
 def shutdownGame():
   sendAMessage({"action": "leaveServer"})
@@ -52,8 +44,11 @@ def drawGameAndUpdateJumperPosition(jumper):
   jumper.scrollScreen(jumper.speed)
   jumper.experienceGravity()
   jumper.winLevelIfTouchingGoal()
-  sendAMessage({"action":"updatePlayer", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"], "postion":(jumper.jumperXWithScroll, jumper.jumperY)}})
+  sendAMessage({"action":"updatePlayer", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"], "position":(jumper.jumperXWithScroll, jumper.jumperY)}})
   jumper.drawJumper()
+  
+  for otherJumper in list(globalVariables["playersInLobby"].values()):
+    otherJumper.drawJumper()
 
 def drawDeathScreen(jumper):
   globalVariables["screen"].fill((255, 0, 0))
@@ -64,7 +59,7 @@ def drawDeathScreen(jumper):
 
   if pressedKeys[pygame.K_SPACE]:
     jumper.resetJumper()
-    sendAMessage({"action":"updatePlayer", "contents":{"username": globalVariables["username"], "lobby": globalVariables["lobby"], "postion":(jumper.jumperXWithScroll, jumper.jumperY)}})
+    sendAMessage({"action":"updatePlayer", "contents":{"username": globalVariables["username"], "lobby": globalVariables["lobby"], "position":(jumper.jumperXWithScroll, jumper.jumperY)}})
   if pressedKeys[pygame.K_b] and pressedKeys[pygame.K_y] and pressedKeys[pygame.K_e]:
     globalVariables["veiwingHomeScreen"] = True
     globalVariables["playingGame"] = False
@@ -85,7 +80,7 @@ def drawWinScreen(jumper):
 
   if pressedKeys[pygame.K_r]:
     jumper.resetJumper()
-    sendAMessage({"action":"updatePlayer", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"], "postion":(jumper.jumperXWithScroll, jumper.jumperY)}})
+    sendAMessage({"action":"updatePlayer", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"], "position":(jumper.jumperXWithScroll, jumper.jumperY)}})
   if pressedKeys[pygame.K_b] and pressedKeys[pygame.K_y] and pressedKeys[pygame.K_e]:
     globalVariables["veiwingHomeScreen"] = True
     globalVariables["playingGame"] = False
@@ -184,44 +179,3 @@ def drawSelectLevel():
           writeText("freesansbold.ttf", 30, str(levelIndex), (255, 255, 255), (((levelIndex - 1) * 75) + 48 - levelScroll, (globalVariables["screenHeight"] / 2) + 88))
       
     pygame.display.flip()
-
-def readAndWriteFile(file: str, itemToWrite="", createFile=False):
-  if createFile:
-    with open(file, "w") as file:
-      file.write(itemToWrite)
-
-    return itemToWrite
-
-  else:
-    with open(file, "r+") as file:
-      fileContents = file.read()
-      
-      if itemToWrite != "":
-        file.seek(0)
-        file.write(itemToWrite)
-
-    return fileContents
-  
-def getSavedData(username:str):
-  try:
-    savedData = json.loads(readAndWriteFile("'" + username + "'GameProgress.JSON"))
-  except FileNotFoundError:
-    savedData = json.loads(readAndWriteFile("'" + username + "'GameProgress.JSON", itemToWrite=json.dumps(savedVariables), createFile=True))
-
-  return savedData
-
-def saveData(username: str):
-  for key in list(savedVariables.keys()):
-    savedVariables[key] = globalVariables[key]
-
-  readAndWriteFile("'" + username + "'GameProgress.JSON", json.dumps(savedVariables))
-
-def updateGlobalVariables():
-  savedVariables = getSavedData(str(globalVariables["username"]))
-
-  if savedVariables != "":
-    for key in savedVariables:
-      globalVariables[key] = savedVariables[key]
-
-def updateGameProgress():
-  saveData(str(globalVariables["username"]))
