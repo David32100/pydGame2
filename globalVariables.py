@@ -25,5 +25,6 @@ globalVariables = {
   "discoveredLevels": savedVariables["discoveredLevels"],
   "party": 0,
   "username": savedVariables["username"],
-  "lobby": 20000
+  "lobby": None,
+  "status": "Not in game"
 }

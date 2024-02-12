@@ -2,6 +2,7 @@
 import json
 
 from gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
+from globalVariables import globalVariables
 
 message = {"action":"spawnPlayer","contents":{"Username": "Player1", "playerPosition": (123, 123), "Server":10, "Status":"In game"}}
 client = None
@@ -24,11 +25,17 @@ def shutdownGameClient():
 def receiveMessages():
   global client
 
+  try:
+    messageReceived, addressReceived = receiveMessage(client)
+    decodedMessageReceived = json.loads(messageReceived.decode("utf-8"))
+    return decodedMessageReceived, addressReceived
+  except OSError as e:
+    print("Failed to receive message:", e)
+    return {"actions":None}
+
+def receiveAndManageMessages():
   while True:
-    try:
-      messageReceived, addressReceived = receiveMessage(client)
-      decodedMessageReceived = messageReceived.decode("utf-8")
-      yield decodedMessageReceived
-    except OSError as e:
-      print("Failed to receive message:", e)
-      break
+    messageReceived, addressReceived = receiveMessages()
+
+    if messageReceived["action"] == "joinedLobby":
+      globalVariables["lobby"] = messageReceived["contents"]["lobby"]

@@ -7,14 +7,14 @@ import threading
 from globalVariables import globalVariables
 from jumper import jumper
 from systemFunctions import drawGameAndUpdateJumperPosition, drawDeathScreen, drawWinScreen, drawHomeScreen, drawSelectLevel, shutdownGame, updateGlobalVariables
-from communications import createGameClient, sendAMessage, receiveMessages
+from communications import createGameClient, sendAMessage, receiveAndManageMessages
 
 updateGlobalVariables()
 createGameClient()
-threading.Thread(target=receiveMessages).start()
+threading.Thread(target=receiveAndManageMessages).start()
 pygame.init()
 
-sendAMessage({"action":"joinServer","contents":{"Username": globalVariables["username"]}})
+sendAMessage({"action":"joinServer"})
 clock = pygame.time.Clock()
 
 while True:
@@ -34,8 +34,8 @@ while True:
     if nextScreenToDraw == "Game":
       globalVariables["veiwingHomeScreen"] = False
       globalVariables["playingGame"] = True
-      sendAMessage({"action":"joinGame","contents":{"Username": globalVariables["username"], "Position":(jumper.jumperXWithScroll, jumper.jumperY), "lobby": globalVariables["lobby"]}})
-      sendAMessage({"action":"updateStatus","contents":{"Username": globalVariables["username"], "Status":"In game"}})
+      sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"]}})
+      globalVariables["status"] = "In game"
     elif nextScreenToDraw == "Level":
       drawSelectLevel()
     elif nextScreenToDraw == "Party":
@@ -51,7 +51,7 @@ while True:
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         globalVariables["playingGame"] = False
-        sendAMessage({"action":"leaveGame","contents":{"Username": globalVariables["username"], "lobby":globalVariables["lobby"]}})
+        sendAMessage({"action":"leaveGame","contents":{"username": globalVariables["username"], "lobby":globalVariables["lobby"]}})
         shutdownGame()
 
     if jumper.alive and not jumper.levelWon:

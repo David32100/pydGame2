@@ -35,17 +35,41 @@ def shutDownServer(server):
 
 def runServer(server):
   playerAddresses = []
+  lobbies = {"1_2": {"1":123, "2":123, "3":123, "4":123, "5":123, "6":123, "7":123, "8":123}}
 
   while True:
-      messageReceived, addressReceived = receiveMessage(server)
+    messageReceived, addressReceived = receiveMessage(server)
 
-      if messageReceived["action"] == "joinServer":
-        playerAddresses.append(addressReceived)
+    if messageReceived["action"] == "joinServer":
+      playerAddresses.append(addressReceived)
+      
+    if messageReceived["action"] == "joinGame":
+      searchingForLobby = True
+      i = 1
 
-      if messageReceived["action"] == "updateStatus" and messageReceived["contents"]["status"] == "Offline":
-        playerAddresses.remove(addressReceived)
+      while searchingForLobby:
+        if not (str(i) + "_" + str(messageReceived["contents"]["currentLevel"])) in lobbies:
+          lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])] = {messageReceived["contents"]["username"]:addressReceived}
+          searchingForLobby = False
+        else:
+          if len(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) < 8:
+            lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])][messageReceived["contents"]["username"]] = addressReceived
+            searchingForLobby = False
+          else:
+            i += 1
+      
+      for player in list(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])].values()):
+        if player != addressReceived:
+          sendMessage(server, json.dumps({"action":"newPlayer", "contents":{"username": messageReceived["contents"]["username"], "postition": messageReceived["contents"]["position"]}}).encode("utf-8"), player)
+        else:
+          sendMessage(server, json.dumps({"action":"joinedLobby", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}).encode("utf-8"), player)
+      print("Player '" + str(messageReceived["contents"]["username"]) + "' joined lobby " + str(i) + "_" + str(messageReceived["contents"]["currentLevel"]) + "!")
 
-      print(playerAddresses)
+    if messageReceived["action"] == "leaveGame":
+      lobbies[messageReceived["contents"]["lobby"]].pop(messageReceived["contents"]["username"])
+
+    if messageReceived["action"] == "leaveServer":
+      playerAddresses.remove(addressReceived)
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848
