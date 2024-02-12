@@ -1,4 +1,4 @@
-# What to send to server: sayingSomething: Username, position (+ scroll), lobby, text JUMP!: lobby updateStatus: username joinParty/leaveParty: party status: username, status
+# What to send to server: sayingSomething: Username, position (+ scroll), lobby, text updateStatus: username joinParty/leaveParty: party status: username, status
 import json
 
 from gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
@@ -41,11 +41,14 @@ def receiveAndManageMessages():
     if messageReceived["action"] == "joinedLobby":
       globalVariables["lobby"] = messageReceived["contents"]["lobby"]
 
-    if messageReceived["action"] == "updatePlayer":
+    elif messageReceived["action"] == "updatePlayer":
       if messageReceived["contents"]["username"] in globalVariables["playersInLobby"]:
         globalVariables["playersInLobby"][messageReceived["contents"]["username"]].updateJumper(messageReceived["contents"]["position"][0], messageReceived["contents"]["position"][1])
       else:
         globalVariables["playersInLobby"][messageReceived["contents"]["username"]] = OtherJumpers(messageReceived["contents"]["position"][0], messageReceived["contents"]["position"][1])
 
-    if messageReceived["action"] == "deletePlayer":
+    elif messageReceived["action"] == "deletePlayer":
       globalVariables["playersInLobby"].pop(messageReceived["contents"]["username"])
+
+    elif messageReceived["action"] == "JUMP!!!":
+      jumper.messageInitiatedJump()

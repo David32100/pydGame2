@@ -43,7 +43,7 @@ def runServer(server):
     if messageReceived["action"] == "joinServer":
       playerAddresses.append(addressReceived)
       
-    if messageReceived["action"] == "joinGame":
+    elif messageReceived["action"] == "joinGame":
       searchingForLobby = True
       i = 1
       
@@ -64,7 +64,7 @@ def runServer(server):
         else:
           sendMessage(server, json.dumps({"action":"joinedLobby", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}).encode("utf-8"), player)
 
-    if messageReceived["action"] == "leaveGame":
+    elif messageReceived["action"] == "leaveGame":
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
           sendMessage(server, json.dumps({"action":"deletePlayer", "contents":messageReceived["contents"]}).encode("utf-8"), player)
@@ -72,13 +72,18 @@ def runServer(server):
       lobbies[messageReceived["contents"]["lobby"]].pop(messageReceived["contents"]["username"])
       time.sleep(0.1)
 
-    if messageReceived["action"] == "leaveServer":
+    elif messageReceived["action"] == "leaveServer":
       playerAddresses.remove(addressReceived)
 
-    if messageReceived["action"] == "updatePlayer":
+    elif messageReceived["action"] == "updatePlayer":
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
           sendMessage(server, json.dumps({"action":messageReceived["action"], "contents":messageReceived["contents"]}).encode("utf-8"), player)
+
+    elif messageReceived["action"] == "JUMP!!!":
+      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
+        if player != addressReceived:
+          sendMessage(server, json.dumps(messageReceived).encode("utf-8"), player)
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848

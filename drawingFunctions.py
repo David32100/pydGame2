@@ -49,6 +49,14 @@ def drawGameAndUpdateJumperPosition(jumper):
     if pressedKeys[key]:
       jumper.keyBinds[key](jumper.speed)
 
+  if not pressedKeys[pygame.K_UP] and not pressedKeys[pygame.K_SPACE] and not pressedKeys[pygame.K_w]:
+    jumper.dontJump()
+  else:
+    if jumper.checkJumperCollision()["Bottom"]:
+      sendAMessage({"action":"JUMP!!!", "contents":{"lobby":globalVariables["lobby"]}})
+
+    jumper.jump(jumper.speed)
+
   jumper.scrollScreen(jumper.speed)
   jumper.experienceGravity()
   jumper.winLevelIfTouchingGoal()
