@@ -37,7 +37,7 @@ while True:
       globalVariables["veiwingHomeScreen"] = False
       globalVariables["playingGame"] = True
       sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"]}})
-      time.sleep(1)
+      time.sleep(0.5)
       globalVariables["status"] = "In game"
     elif nextScreenToDraw == "Level":
       drawSelectLevel()

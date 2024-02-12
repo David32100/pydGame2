@@ -49,4 +49,7 @@ def receiveAndManageMessages():
 
     if messageReceived["action"] == "deletePlayer":
       print(globalVariables["playersInLobby"])
-      globalVariables["playersInLobby"].pop([messageReceived["contents"]["username"]])
+      print(messageReceived["contents"]["username"])
+      globalVariables["playersInLobby"].pop(messageReceived["contents"]["username"])
+      print("After:", globalVariables["playersInLobby"])
+      print("Hooray!!!")

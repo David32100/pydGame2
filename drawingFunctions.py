@@ -28,6 +28,14 @@ def shutdownGame():
   updateGameProgress()
   sys.exit()
 
+def leaveGame(jumper):
+  globalVariables["veiwingHomeScreen"] = True
+  globalVariables["playingGame"] = False
+  jumper.resetJumper()
+  sendAMessage({"action":"leaveGame", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"]}})
+  globalVariables["lobby"] = None
+  globalVariables["status"] = "Not in game"
+
 def drawGameAndUpdateJumperPosition(jumper):
   globalVariables["screen"].fill((0, 128, 128))
   
@@ -59,14 +67,8 @@ def drawDeathScreen(jumper):
 
   if pressedKeys[pygame.K_SPACE]:
     jumper.resetJumper()
-    sendAMessage({"action":"updatePlayer", "contents":{"username": globalVariables["username"], "lobby": globalVariables["lobby"], "position":(jumper.jumperXWithScroll, jumper.jumperY)}})
   if pressedKeys[pygame.K_b] and pressedKeys[pygame.K_y] and pressedKeys[pygame.K_e]:
-    globalVariables["veiwingHomeScreen"] = True
-    globalVariables["playingGame"] = False
-    jumper.resetJumper()
-    sendAMessage({"action":"leaveGame", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"]}})
-    globalVariables["lobby"] = None
-    globalVariables["status"] = "Not in game"
+    leaveGame(jumper)
 
 def drawWinScreen(jumper):
   globalVariables["screen"].fill((127, 127, 0))
@@ -80,14 +82,8 @@ def drawWinScreen(jumper):
 
   if pressedKeys[pygame.K_r]:
     jumper.resetJumper()
-    sendAMessage({"action":"updatePlayer", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"], "position":(jumper.jumperXWithScroll, jumper.jumperY)}})
   if pressedKeys[pygame.K_b] and pressedKeys[pygame.K_y] and pressedKeys[pygame.K_e]:
-    globalVariables["veiwingHomeScreen"] = True
-    globalVariables["playingGame"] = False
-    jumper.resetJumper()
-    sendAMessage({"action":"leaveGame", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"]}})
-    globalVariables["lobby"] = None
-    globalVariables["status"] = "Not in game"
+    leaveGame(jumper)
 
 def drawHomeScreen(checkMouseEvent: bool) -> str:
   globalVariables["screen"].fill((0, 255, 255))
