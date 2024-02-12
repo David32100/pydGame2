@@ -48,8 +48,4 @@ def receiveAndManageMessages():
         globalVariables["playersInLobby"][messageReceived["contents"]["username"]] = OtherJumpers(messageReceived["contents"]["position"][0], messageReceived["contents"]["position"][1])
 
     if messageReceived["action"] == "deletePlayer":
-      print(globalVariables["playersInLobby"])
-      print(messageReceived["contents"]["username"])
       globalVariables["playersInLobby"].pop(messageReceived["contents"]["username"])
-      print("After:", globalVariables["playersInLobby"])
-      print("Hooray!!!")

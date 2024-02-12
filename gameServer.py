@@ -35,21 +35,9 @@ def shutDownServer(server):
 def runServer(server):
   playerAddresses = []
   lobbies = {}
-  lastMessageReceived, lastAddressReceived = "", ""
 
   while True:
-    receivingMessages = True
-
-    while receivingMessages:
-      messageReceived, addressReceived = receiveMessage(server)
-
-      if messageReceived["action"] != "status":
-        if messageReceived != lastMessageReceived or addressReceived != lastAddressReceived:
-          receivingMessages = False
-          lastMessageReceived, lastAddressReceived = messageReceived, addressReceived
-      else:
-        receivingMessages = False
-
+    messageReceived, addressReceived = receiveMessage(server)
     print("Received message:", messageReceived, "From:", addressReceived)
 
     if messageReceived["action"] == "joinServer":
@@ -58,8 +46,7 @@ def runServer(server):
     if messageReceived["action"] == "joinGame":
       searchingForLobby = True
       i = 1
-      print("Player", messageReceived["contents"]["username"], "is trying to join a game...")
-
+      
       while searchingForLobby:
         if not (str(i) + "_" + str(messageReceived["contents"]["currentLevel"])) in lobbies:
           lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])] = {messageReceived["contents"]["username"]:addressReceived}
@@ -76,17 +63,13 @@ def runServer(server):
           sendMessage(server, json.dumps({"action":"updatePlayer", "contents": messageReceived["contents"]}).encode("utf-8"), player)
         else:
           sendMessage(server, json.dumps({"action":"joinedLobby", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}).encode("utf-8"), player)
-      print("Player '" + str(messageReceived["contents"]["username"]) + "' joined lobby " + str(i) + "_" + str(messageReceived["contents"]["currentLevel"]) + "!")
 
     if messageReceived["action"] == "leaveGame":
-      print("Player", messageReceived["contents"]["username"], "is trying to leave lobby", messageReceived["contents"]["lobby"])
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
-          print("Sent message that player left lobby")
           sendMessage(server, json.dumps({"action":"deletePlayer", "contents":messageReceived["contents"]}).encode("utf-8"), player)
 
       lobbies[messageReceived["contents"]["lobby"]].pop(messageReceived["contents"]["username"])
-      print("Deleted", messageReceived["contents"]["username"])
       time.sleep(0.1)
 
     if messageReceived["action"] == "leaveServer":
