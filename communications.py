@@ -1,3 +1,4 @@
+import subprocess
 import json
 
 from gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
@@ -15,7 +16,11 @@ def createGameClient():
 def sendAMessage(message):
   global client
   messageToSend = json.dumps(message).encode("utf-8")
-  sendMessage(client, messageToSend, host, port)
+  if check_internet_connection():
+    sendMessage(client, messageToSend, host, port)
+  else:
+    print("Error: user not connected to internet.")
+    shutdownGameClient()
 
 def shutdownGameClient():
   global client
@@ -33,6 +38,13 @@ def receiveMessages():
     print("Failed to receive message:", e)
     return {"actions":None}
 
+def check_internet_connection():
+  try:
+    subprocess.check_output(["ping", "-c", "1", "8.8.8.8"])
+    return True
+  except subprocess.CalledProcessError:
+    return False
+  
 def receiveAndManageMessages():
   while True:
     messageReceived, addressReceived = receiveMessages()
@@ -51,3 +63,16 @@ def receiveAndManageMessages():
 
     elif messageReceived["action"] == "JUMP!!!":
       jumper.messageInitiatedJump()
+
+    elif messageReceived["action"] == "partyJoined":
+      globalVariables["party"] = messageReceived["contents"]["party"]
+
+    elif messageReceived["action"] == "partyFull":
+      print("Cannot join, party full.")
+    
+    elif messageReceived["action"] == "playerJoinedParty":
+      globalVariables["playersInParty"].append(messageReceived["contents"]["player"])
+      sendAMessage({"action":"updateParty", "contents":{"username":globalVariables["username"], "address":tuple(messageReceived["contents"]["player"][1])}})
+
+    elif messageReceived["action"] == "updatingParty":
+      globalVariables["playersInParty"].append(messageReceived["contents"]["player"])

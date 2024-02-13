@@ -25,5 +25,6 @@ globalVariables = {
   "username": savedVariables["username"],
   "lobby": None,
   "status": "Not in game",
-  "playersInLobby": {}
+  "playersInLobby": {},
+  "playersInParty": []
 }
