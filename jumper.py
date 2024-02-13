@@ -89,18 +89,19 @@ class Jumper():
   def jump(self, speed : int):
     if self.alive:
       if self.canJump:
-        if self.jumpTimer <= (0.5 * globalVariables["fps"]):
-          if self.checkJumperCollision(self.gravity - speed)["Top"]:
-            self.jumpTimer = 0.51 * globalVariables["fps"]
+        if self.jumpTimer <= (1 * globalVariables["fps"]):
+          if self.checkJumperCollision(self.gravity - speed + (self.jumpTimer * speed)/(1 * globalVariables["fps"]))["Top"]:
+            self.jumpTimer = 1.1 * globalVariables["fps"]
           
-          self.__move(False, -self.gravity - speed)
-          self.__move(True, speed / 2)
+          self.__move(False, -self.gravity - speed + (self.jumpTimer * speed)/(1 * globalVariables["fps"]))
           self.jumpTimer += 1
-        else:
-          self.canJump = False
     
+        if self.jumpTimer > 1:
+          self.__move(True, self.speed / 2)
+
         if self.checkJumperCollision()["Bottom"]:
           self.jumpTimer = 1
+          self.canJump = False
       else:
         if self.checkJumperCollision()["Bottom"]:
           self.canJump = True
@@ -111,10 +112,10 @@ class Jumper():
   def messageInitiatedJump(self):
     if self.canMessageInitiatedJump:
       if self.messageInitiatedJumpTimer <= (0.5 * globalVariables["fps"]):
-        if self.checkJumperCollision(self.gravity - self.speed)["Top"]:
+        if self.checkJumperCollision(-(self.gravity * 2) - self.speed)["Top"]:
           self.messageInitiatedJumpTimer = 0.51 * globalVariables["fps"]
         
-        self.__move(False, -self.gravity - self.speed)
+        self.__move(False, -(self.gravity * 2) - self.speed)
         self.__move(True, self.speed / 2)
         self.messageInitiatedJumpTimer += 1
       else:
@@ -126,7 +127,7 @@ class Jumper():
       if self.checkJumperCollision()["Bottom"]:
         self.canMessageInitiatedJump = True
 
-  def checkJumperCollision(self, xDisplacement=0, yDisplacement=0):
+  def checkJumperCollision(self, xDisplacement: float=0, yDisplacement: float=0):
     if self.jumperY + self.jumperHeight + self.gravity < globalVariables["screenHeight"]:
       return collisionCheck(self.jumperX + xDisplacement, self.jumperY - (self.jumperHeadRadius * 2) + yDisplacement, self.jumperWidth, (self.jumperHeight + (self.jumperHeadRadius * 2)), self.gravity)
     else:

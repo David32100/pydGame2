@@ -1,6 +1,4 @@
 import pygame
-import ast
-import json
 
 screenWidth, screenHeight = 700, 500
 screen = pygame.display.set_mode((screenWidth, screenHeight))
@@ -8,7 +6,7 @@ screen = pygame.display.set_mode((screenWidth, screenHeight))
 savedVariables = {
   "currentLevel": 10,
   "discoveredLevels": 10,
-  "username": "The best player2"
+  "username": "The best player"
 }
 
 globalVariables = {
