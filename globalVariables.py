@@ -21,7 +21,7 @@ globalVariables = {
   "playingGame": False,
   "veiwingHomeScreen": True,
   "discoveredLevels": savedVariables["discoveredLevels"],
-  "party": 0,
+  "party": None,
   "username": savedVariables["username"],
   "lobby": None,
   "status": "Not in game",

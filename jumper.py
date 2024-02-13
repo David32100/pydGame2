@@ -90,10 +90,10 @@ class Jumper():
     if self.alive:
       if self.canJump:
         if self.jumpTimer <= (1 * globalVariables["fps"]):
-          if self.checkJumperCollision(self.gravity - speed + (self.jumpTimer * speed)/(1 * globalVariables["fps"]))["Top"]:
+          if self.checkJumperCollision(self.gravity - speed + (self.jumpTimer * speed)/(1 * globalVariables["fps"]))["Top"] or (self.jumperY - (self.jumperHeadRadius * 2) - self.gravity - speed + (self.jumpTimer * speed)/(1 * globalVariables["fps"])) <= 0:
             self.jumpTimer = 1.1 * globalVariables["fps"]
           
-          self.__move(False, -self.gravity - speed + (self.jumpTimer * speed)/(1 * globalVariables["fps"]))
+          self.__move(False, -self.gravity - speed + (self.jumpTimer * (speed))/(1 * globalVariables["fps"]))
           self.jumpTimer += 1
     
         if self.jumpTimer > 1:
