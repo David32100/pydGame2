@@ -1,5 +1,6 @@
 # To do: jumper.py Ln 89-128 Fix and improve jumping, main.py Ln 45 Make party screen, None Ln None Make text chat, main.py Ln 47 Make settings screen, None Ln None Make accounts and account screen, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
 # What to send to server: Status, text
+# What to send to server: sayingSomething: username, position (+ scroll), lobby, text status: username, status joinParty/leaveParty: username, party status: username, status
 
 import pygame
 import threading
