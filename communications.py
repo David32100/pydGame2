@@ -1,4 +1,4 @@
-# What to send to server: sayingSomething: Username, position (+ scroll), lobby, text updateStatus: username joinParty/leaveParty: party status: username, status
+# What to send to server: sayingSomething: username, position (+ scroll), lobby, text status: username, status joinParty/leaveParty: username, party status: username, status
 import json
 
 from gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage

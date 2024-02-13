@@ -1,5 +1,5 @@
-# To do: None Ln None Make game multiplayer online, main.py Ln None Make party screen, main.py Ln None Make text chat, main.py Ln None Make settings screen and accounts, main.py Ln None Add SFX and music, main.py Ln None Add graphics and transitions, None Ln None Polish game, None Ln None Setup and share the new game!!!
-# What to send to server: Username, Party, Status, while in game - position (+ scroll), lobby (lobby + level Ex. level 0 lobby 43: 430), text
+# To do: jumper.py Ln 89-128 Fix and improve jumping, main.py Ln 45 Make party screen, None Ln None Make text chat, main.py Ln 47 Make settings screen, None Ln None Make accounts and account screen, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
+# What to send to server: Status, text
 
 import pygame
 import threading
