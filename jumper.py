@@ -110,22 +110,29 @@ class Jumper():
     self.canJump = False
 
   def messageInitiatedJump(self):
-    if self.canMessageInitiatedJump:
-      if self.messageInitiatedJumpTimer <= (0.5 * globalVariables["fps"]):
-        if self.checkJumperCollision(-(self.gravity * 2) - self.speed)["Top"]:
-          self.messageInitiatedJumpTimer = 0.51 * globalVariables["fps"]
-        
-        self.__move(False, -(self.gravity * 2) - self.speed)
-        self.__move(True, self.speed / 2)
-        self.messageInitiatedJumpTimer += 1
+    if self.alive:
+      if self.canMessageInitiatedJump:
+        if self.messageInitiatedJumpTimer <= (1 * globalVariables["fps"]):
+          if self.checkJumperCollision(self.gravity - self.speed + (self.jumpTimer * self.speed)/(1 * globalVariables["fps"]))["Top"] or (self.jumperY - (self.jumperHeadRadius * 2) - self.gravity - self.speed + (self.jumpTimer * self.speed)/(1 * globalVariables["fps"])) <= 0:
+            self.jumpTimer = 1.1 * globalVariables["fps"]
+          
+          self.__move(False, -self.gravity - self.speed + (self.jumpTimer * (self.speed))/(1 * globalVariables["fps"]))
+          self.messageInitiatedJumpTimer += 1
+
+          if self.messageInitiatedJumpTimer > 1:
+            self.__move(True, self.speed / 2)
+
+        if self.checkJumperCollision()["Bottom"]:
+          self.messageInitiatedJumpTimer = 1
+          self.canMessageInitiatedJump = False
+        else:
+          self.canMessageInitiatedJump = False
+    
+        if self.checkJumperCollision()["Bottom"]:
+          self.messageInitiatedJumpTimer = 1
       else:
-        self.canMessageInitiatedJump = False
-  
-      if self.checkJumperCollision()["Bottom"]:
-        self.messageInitiatedJumpTimer = 1
-    else:
-      if self.checkJumperCollision()["Bottom"]:
-        self.canMessageInitiatedJump = True
+        if self.checkJumperCollision()["Bottom"]:
+          self.canMessageInitiatedJump = True
 
   def checkJumperCollision(self, xDisplacement: float=0, yDisplacement: float=0):
     if self.jumperY + self.jumperHeight + self.gravity < globalVariables["screenHeight"]:

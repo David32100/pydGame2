@@ -1,5 +1,6 @@
 import subprocess
 import json
+import time
 
 from gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
 from globalVariables import globalVariables
@@ -16,11 +17,7 @@ def createGameClient():
 def sendAMessage(message):
   global client
   messageToSend = json.dumps(message).encode("utf-8")
-  if check_internet_connection():
-    sendMessage(client, messageToSend, host, port)
-  else:
-    print("Error: user not connected to internet.")
-    shutdownGameClient()
+  sendMessage(client, messageToSend, host, port)
 
 def shutdownGameClient():
   global client
@@ -71,8 +68,19 @@ def receiveAndManageMessages():
       print("Cannot join, party full.")
     
     elif messageReceived["action"] == "playerJoinedParty":
-      globalVariables["playersInParty"].append(messageReceived["contents"]["player"])
+      globalVariables["playersInParty"].append(messageReceived["contents"]["player"][0])
       sendAMessage({"action":"updateParty", "contents":{"username":globalVariables["username"], "address":tuple(messageReceived["contents"]["player"][1])}})
 
     elif messageReceived["action"] == "updatingParty":
-      globalVariables["playersInParty"].append(messageReceived["contents"]["player"])
+      globalVariables["playersInParty"].append(messageReceived["contents"]["player"][0])
+
+    elif messageReceived["action"] == "partyDeletePlayer":
+      globalVariables["playersInParty"].remove(messageReceived["contents"]["player"][0])
+
+    elif messageReceived["action"] == "joinedLobby":
+      globalVariables["veiwingHomeScreen"] = False
+      globalVariables["playingGame"] = True
+      globalVariables["currentLevel"] = messageReceived["contents"]["lobby"].split("_")[1]
+      sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None}})
+      time.sleep(0.5)
+      globalVariables["status"] = "In game"

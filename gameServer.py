@@ -16,7 +16,7 @@ def receiveMessage(server):
   return decodedMessageReceived, addressReceived
 
 def sendMessage(server, message: bytes, address):
-  print("Sending message:", message, "To:", address)
+  #print("Sending message:", message, "To:", address)
   server.sendto(message, address)
 
 def askToStopServer(server):
@@ -39,7 +39,7 @@ def runServer(server):
 
   while True:
     messageReceived, addressReceived = receiveMessage(server)
-    print("Received message:", messageReceived, "From:", addressReceived)
+    #print("Received message:", messageReceived, "From:", addressReceived)
 
     if messageReceived["action"] == "joinServer":
       playerAddresses.append(addressReceived)
@@ -55,9 +55,13 @@ def runServer(server):
         else:
           if messageReceived["contents"]["party"] != None:
             if len(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) < 9 - len(parties[messageReceived["contents"]["party"]]):
+              lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])][messageReceived["contents"]["username"]] = addressReceived
+              
               for person in parties[messageReceived["contents"]["party"]]:
-                lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])][person[0]] = person[1]
-                searchingForLobby = False
+                if person != addressReceived:
+                  sendMessage(server, json.dumps({"action":"joinGame", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}).encode("utf-8"), parties[messageReceived["contents"]["party"]][person])
+                
+              searchingForLobby = False
             else:
               i += 1
           else:
@@ -99,21 +103,25 @@ def runServer(server):
         if len(parties[messageReceived["contents"]["party"]]) > 7:
           sendMessage(server, json.dumps({"action":"partyFull", "contents":{"party":messageReceived["contents"]["party"]}}).encode("utf-8"), addressReceived)
         else:
-          parties[messageReceived["contents"]["party"]].append([messageReceived["contents"]["username"], addressReceived])
+          parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]] = addressReceived
           
-          for player in parties[messageReceived["contents"]["party"]][1]:
+          for player in list(parties[messageReceived["contents"]["party"]].values()):
             if player == addressReceived:
               sendMessage(server, json.dumps({"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"]}}).encode("utf-8"), addressReceived)
             else:
-              for player in parties[messageReceived["contents"]["party"]]:
-                if player[1] != addressReceived:
-                  sendMessage(server, json.dumps({"action":"playerJoinedParty", "contents":{"party":messageReceived["contents"]["party"], "player":(messageReceived["contents"]["username"], tuple(addressReceived))}}).encode("utf-8"), player[1])
+              sendMessage(server, json.dumps({"action":"playerJoinedParty", "contents":{"party":messageReceived["contents"]["party"], "player":(messageReceived["contents"]["username"], tuple(addressReceived))}}).encode("utf-8"), player)
       else:
-        parties[messageReceived["contents"]["party"]] = [[messageReceived["contents"]["username"], addressReceived]]
+        parties[messageReceived["contents"]["party"]] = {messageReceived["contents"]["username"]: addressReceived}
         sendMessage(server, json.dumps({"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"]}}).encode("utf-8"), addressReceived)
 
     elif messageReceived["action"] == "updateParty":
       sendMessage(server, json.dumps({"action":"updatingParty", "contents":{"player":(messageReceived["contents"]["username"], tuple(addressReceived))}}).encode("utf-8"), tuple(messageReceived["contents"]["address"]))
+
+    elif messageReceived["action"] == "leaveParty":
+      parties[messageReceived["contents"]["party"]].pop(messageReceived["contents"]["username"])
+
+      for player in list(parties[messageReceived["contents"]["party"]].values()):
+        sendMessage(server, json.dumps({"action":"partyDeletePlayer", "contents":{"player":(messageReceived["contents"]["username"], addressReceived)}}).encode("utf-8"), player)
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848

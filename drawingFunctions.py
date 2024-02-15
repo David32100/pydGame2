@@ -6,6 +6,8 @@ from levels import levels
 from communications import shutdownGameClient, sendAMessage
 from savingFunctions import updateGameProgress
 
+sendJumpingMessage = False
+
 def writeText(font: str, size: int, text: str, color: tuple,  textPosition: tuple, background: tuple = None):
   font = pygame.font.SysFont(font, size)
   text = font.render(text, True, color, background)
@@ -21,6 +23,9 @@ def writeText(font: str, size: int, text: str, color: tuple,  textPosition: tupl
 # All non-noto fonts: 'lohitodia', 'dejavusansmono', 'dejavuserif', 'tinos', 'arimo', 'googlesans', 'dejavusans', 'caladea', 'wingdings2', 'roboto', 'wingdings3', 'arialnarrow', 'webdings', 'jomolhari', 'nanumgothic', 'georgia', 'carlito', 'cousine', 'verdana', 'tahoma', 'bizudpgothic', 'comicsansms', 'garamond', 'wingdings', 'lohitpunjabi', 'arialblack', 'bizudpmincho', 'ipaexmincho'
 
 def shutdownGame():
+  if globalVariables["party"] != None:
+    sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
+
   sendAMessage({"action": "leaveServer"})
   globalVariables["status"] = "Offline"
   shutdownGameClient()
@@ -37,6 +42,7 @@ def leaveGame(jumper):
   globalVariables["status"] = "Not in game"
 
 def drawGameAndUpdateJumperPosition(jumper):
+  global sendJumpingMessage
   globalVariables["screen"].fill((0, 128, 128))
   
   for object in levels[globalVariables["currentLevel"]][2]:
@@ -51,11 +57,15 @@ def drawGameAndUpdateJumperPosition(jumper):
 
   if not pressedKeys[pygame.K_UP] and not pressedKeys[pygame.K_SPACE] and not pressedKeys[pygame.K_w]:
     jumper.dontJump()
+    sendJumpingMessage = False
   else:
     if jumper.checkJumperCollision()["Bottom"]:
-      sendAMessage({"action":"JUMP!!!", "contents":{"lobby":globalVariables["lobby"]}})
-
+      sendJumpingMessage = True
+    
     jumper.jump(jumper.speed)
+
+  if sendJumpingMessage:
+    sendAMessage({"action":"JUMP!!!", "contents":{"lobby":globalVariables["lobby"]}})
 
   jumper.scrollScreen(jumper.speed)
   jumper.experienceGravity()

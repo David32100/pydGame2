@@ -1,6 +1,6 @@
-# To do: jumper.py Ln All Introduce acceleration, main.py Ln 45 Make party screen, None Ln None Make text chat, main.py Ln 47 Make settings screen, None Ln None Make accounts and account screen, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
-# What to send to server: Status, text
-# What to send to server: sayingSomething: username, position (+ scroll), lobby, text status: username, status joinParty/leaveParty: username, party status: username, status
+# To do: jumper.py Ln All Introduce acceleration for jumping and falling, jumper.py Ln 112 Fix message initiated jummping main.py Ln 45 Finish party screen, None Ln None None Fix joining games with a party, Ln None Make text chat, main.py Ln 47 Make settings screen, None Ln None Make accounts and account screen, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
+# What to send to server: Status
+# Actions to send to server: talk: username, position (+ scroll), lobby, text status: username, status
 
 import pygame
 import threading
@@ -71,7 +71,7 @@ while True:
           pygame.draw.rect(globalVariables["screen"], (0, 255, 0), (45, globalVariables["screenHeight"] - 100, 150, 60))
           pygame.draw.rect(globalVariables["screen"], (255, 255, 255), ((globalVariables["screenWidth"] / 2) - 140, (globalVariables["screenHeight"] / 2) - 25, 400, 50))
           pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] / 2) - 143, (globalVariables["screenHeight"] / 2) - 28, 406, 56), 3)
-          
+
           if checkMouse:
             mouseX, mouseY = pygame.mouse.get_pos()
 
@@ -82,6 +82,7 @@ while True:
               if len(code) == 15 and canJoinParty:
                 sendAMessage({"action":"joinParty", "contents":{"party":code, "username":globalVariables["username"]}})
                 canJoinParty = False
+                choosingParty = False
 
             checkMouse = False
 
@@ -104,6 +105,13 @@ while True:
           
           globalVariables["screen"].fill((0, 255, 255))
           pygame.draw.rect(globalVariables["screen"], (255, 0, 0), ((globalVariables["screenWidth"] / 2) + 155, globalVariables["screenHeight"] - 100, 150, 60))
+          pygame.draw.rect(globalVariables["screen"], (0, 255, 0), (45, globalVariables["screenHeight"] - 100, 150, 60))
+          
+          for playerIndex in range(len(globalVariables["playersInParty"])):
+            if playerIndex >= 4:
+              pygame.draw.rect(globalVariables["screen"], (1, 0, playerIndex), (175, 110 + 60 * (playerIndex - 4), 125, 50))
+            else:
+              pygame.draw.rect(globalVariables["screen"], (1, 0, playerIndex), (50, 110 + 60 * playerIndex, 125, 50))
           
           if checkMouse:
             mouseX, mouseY = pygame.mouse.get_pos()
@@ -111,11 +119,24 @@ while True:
             if globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
               choosingParty = False
 
-            print(globalVariables["playersInParty"])
+            if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
+              globalVariables["playersInParty"] = []
+              sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
+              globalVariables["party"] = None
+              choosingParty = False
+              canJoinParty = True
+
             checkMouse = False
 
-          writeText("freesansbold.ttf", 60, "Join Party", (0, 0, 0), (globalVariables["screenWidth"] / 2, 80))
+          writeText("freesansbold.ttf", 60, "Party", (0, 0, 0), (globalVariables["screenWidth"] / 2, 80))
+          writeText("freesansbold.ttf", 35, "Leave", (0, 0, 0), (120, globalVariables["screenHeight"] - 70))
           writeText("freesansbold.ttf", 35, "Back", (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 230, globalVariables["screenHeight"] - 70))
+
+          for playerIndex in range(len(globalVariables["playersInParty"])):
+            if playerIndex >= 4:
+              writeText("freesansbold.ttf", 22, globalVariables["playersInParty"][playerIndex], (255, 255, 255), (237, 121 + 60 * (playerIndex - 4)))
+            else:
+              writeText("freesansbold.ttf", 22, globalVariables["playersInParty"][playerIndex], (255, 255, 255), (112, 121 + 60 * playerIndex))
 
           pygame.display.flip()          
 
