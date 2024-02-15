@@ -22,9 +22,9 @@ def readAndWriteFile(file: str, itemToWrite="", createFile=False):
   
 def getSavedData(username:str):
   try:
-    savedData = json.loads(readAndWriteFile("'" + username + "'GameProgress.JSON"))
+    savedData = json.loads(readAndWriteFile("saveFiles/'" + username + "'GameProgress.JSON"))
   except FileNotFoundError:
-    savedData = json.loads(readAndWriteFile("'" + username + "'GameProgress.JSON", itemToWrite=json.dumps(savedVariables), createFile=True))
+    savedData = json.loads(readAndWriteFile("saveFiles/'" + username + "'GameProgress.JSON", itemToWrite=json.dumps(savedVariables), createFile=True))
 
   return savedData
 
@@ -32,14 +32,13 @@ def saveData(username: str):
   for key in list(savedVariables.keys()):
     savedVariables[key] = globalVariables[key]
 
-  readAndWriteFile("'" + username + "'GameProgress.JSON", json.dumps(savedVariables))
+  readAndWriteFile("saveFiles/'" + username + "'GameProgress.JSON", json.dumps(savedVariables))
 
 def updateGlobalVariables():
   savedVariables = getSavedData(str(globalVariables["username"]))
 
-  if savedVariables != "":
-    for key in savedVariables:
-      globalVariables[key] = savedVariables[key]
+  for key in savedVariables:
+    globalVariables[key] = savedVariables[key]
 
 def updateGameProgress():
   saveData(str(globalVariables["username"]))

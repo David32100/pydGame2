@@ -2,6 +2,7 @@ import pygame
 
 screenWidth, screenHeight = 700, 500
 screen = pygame.display.set_mode((screenWidth, screenHeight))
+clock = pygame.time.Clock()
 
 savedVariables = {
   "currentLevel": 10,
@@ -10,21 +11,20 @@ savedVariables = {
 }
 
 globalVariables = {
+  "clock": clock,
   "screenWidth": screenWidth,
   "screenHeight": screenHeight,
   "screen": screen,
   "fps": 80,
-  "groundColor": (125, 125, 0, 255),
-  "goalColor": (0, 255, 0, 255),
-  "scroll": 0,
   "currentLevel": savedVariables["currentLevel"],
-  "playingGame": False,
-  "veiwingHomeScreen": True,
   "discoveredLevels": savedVariables["discoveredLevels"],
-  "party": None,
   "username": savedVariables["username"],
+  "party": None,
   "lobby": None,
   "status": "Not in game",
+  "playingGame": False,
+  "veiwingHomeScreen": True,
   "playersInLobby": {},
-  "playersInParty": []
+  "playersInParty": [],
+  "scroll": 0
 }

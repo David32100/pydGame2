@@ -1,12 +1,10 @@
-import subprocess
 import json
-import time
 
-from gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
+from client.gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
 from globalVariables import globalVariables
-from jumper import OtherJumpers, jumper
+from game.jumper import jumper
+from game.otherJumpers import OtherJumpers
 
-message = {"action":"spawnPlayer","contents":{"Username": "Player1", "playerPosition": (123, 123), "Server":10, "Status":"In game"}}
 client = None
 host, port = "127.0.0.1", 36848
 
@@ -33,14 +31,7 @@ def receiveMessages():
     return decodedMessageReceived, addressReceived
   except OSError as e:
     print("Failed to receive message:", e)
-    return {"actions":None}
-
-def check_internet_connection():
-  try:
-    subprocess.check_output(["ping", "-c", "1", "8.8.8.8"])
-    return True
-  except subprocess.CalledProcessError:
-    return False
+    return ({"actions":None}, None)
   
 def receiveAndManageMessages():
   while True:
@@ -77,10 +68,10 @@ def receiveAndManageMessages():
     elif messageReceived["action"] == "partyDeletePlayer":
       globalVariables["playersInParty"].remove(messageReceived["contents"]["player"][0])
 
-    elif messageReceived["action"] == "joinedLobby":
-      globalVariables["veiwingHomeScreen"] = False
-      globalVariables["playingGame"] = True
-      globalVariables["currentLevel"] = messageReceived["contents"]["lobby"].split("_")[1]
-      sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None}})
-      time.sleep(0.5)
-      globalVariables["status"] = "In game"
+    # elif messageReceived["action"] == "joinedLobby":
+    #   globalVariables["veiwingHomeScreen"] = False
+    #   globalVariables["playingGame"] = True
+    #   globalVariables["currentLevel"] = messageReceived["contents"]["lobby"].split("_")[1]
+    #   sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None}})
+    #   time.sleep(0.5)
+    #   globalVariables["status"] = "In game"

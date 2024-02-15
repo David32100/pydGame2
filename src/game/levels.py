@@ -1,10 +1,10 @@
-from obstacles import Ground, EndGoal
+from game.obstacles import Ground, EndGoal
 
 # Level width includes max scroll plus screen width
 level10Layout = {
   Ground(): (0, 450, 350, 50),
   Ground(): (0, 260, 700, 20),
-  Ground(): (0, 200, 200, 40),
+  Ground(): (0, 200, 200, 60),
   Ground(): (250, 90, 5450, 20),
   Ground(): (450, 370, 350, 150),
   Ground(): (800, 450, 4900, 50),

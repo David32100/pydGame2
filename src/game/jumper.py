@@ -1,9 +1,9 @@
 import pygame
-import random
 
 from globalVariables import globalVariables
-from collision import collisionCheck
-from levels import levels
+from game.collision import collisionCheck
+from game.levels import levels
+from game.obstacles import groundColor, goalColor
 
 def checkIfTouchingColor(spriteX, spriteY, spriteWidth, spriteHeight, colorToCheckFor):
   for xPos in range(int(spriteX), int(spriteX + spriteWidth)):
@@ -12,6 +12,7 @@ def checkIfTouchingColor(spriteX, spriteY, spriteWidth, spriteHeight, colorToChe
         return True
       
   return False
+
 class Jumper():
   def __init__(self):
     self.jumperColor = (0, 0, 255)
@@ -20,19 +21,20 @@ class Jumper():
     self.jumperWidth, self.jumperHeight = 20, 40
     self.jumperHeadRadius = 10
     self.speed = 3
-    self.jumpTimer = 1
     self.alive = True
     self.gravity = 3
     self.levelWon = False
     self.scrollThreshold = globalVariables["screenWidth"] / 2
     self.canJump = False
     self.canMessageInitiatedJump = False
+    # Figure out how to get rid of jumpTimer and messageInitiatedJumpTimer
+    self.jumpTimer = 1
     self.messageInitiatedJumpTimer = 1
 
     self.keyBinds = {
       pygame.K_a: self.moveLeft,
-      pygame.K_d: self.moveRight,
       pygame.K_LEFT: self.moveLeft,
+      pygame.K_d: self.moveRight,
       pygame.K_RIGHT: self.moveRight
     }
     
@@ -136,7 +138,7 @@ class Jumper():
 
   def checkJumperCollision(self, xDisplacement: float=0, yDisplacement: float=0):
     if self.jumperY + self.jumperHeight + self.gravity < globalVariables["screenHeight"]:
-      return collisionCheck(self.jumperX + xDisplacement, self.jumperY - (self.jumperHeadRadius * 2) + yDisplacement, self.jumperWidth, (self.jumperHeight + (self.jumperHeadRadius * 2)), self.gravity)
+      return collisionCheck(self.jumperX + xDisplacement, self.jumperY - (self.jumperHeadRadius * 2) + yDisplacement, self.jumperWidth, (self.jumperHeight + (self.jumperHeadRadius * 2)), self.gravity, groundColor)
     else:
       self.alive = False
       return {"Top": True, "Bottom": True, "Left": True, "Right": True}
@@ -160,22 +162,6 @@ class Jumper():
     self.levelWon = False
 
   def winLevelIfTouchingGoal(self):
-    self.levelWon = checkIfTouchingColor(self.jumperX, self.jumperY - (self.jumperHeadRadius * 2), self.jumperWidth, self.jumperHeight + (self.jumperHeadRadius * 2), globalVariables["goalColor"])
-
-class OtherJumpers():
-  def __init__(self, otherJumperX: float, otherJumperY: float):
-    self.otherJumperColor = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-    self.otherJumperX, self.otherJumperY = (otherJumperX - globalVariables["scroll"], otherJumperY)
-
-  def drawJumper(self):
-    otherJumperBody = (self.otherJumperX, self.otherJumperY, 20, 40)
-    otherJumperHead = (self.otherJumperX + 10, self.otherJumperY - 10)
-
-    pygame.draw.rect(globalVariables["screen"], self.otherJumperColor, otherJumperBody)
-    pygame.draw.circle(globalVariables["screen"], self.otherJumperColor, otherJumperHead, 10)
-
-  def updateJumper(self, otherJumperX: float, otherJumperY: float):
-    self.otherJumperX = otherJumperX - globalVariables["scroll"]
-    self.otherJumperY = otherJumperY
+    self.levelWon = checkIfTouchingColor(self.jumperX, self.jumperY - (self.jumperHeadRadius * 2), self.jumperWidth, self.jumperHeight + (self.jumperHeadRadius * 2), goalColor)
 
 jumper = Jumper()

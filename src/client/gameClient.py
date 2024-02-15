@@ -1,8 +1,7 @@
 import socket
 
 def createUdpClient():
-  newSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  return newSocket
+  return socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 def sendMessage(client, message: bytes, host: str, port: int):
   client.sendto(message, (host, port))
@@ -18,4 +17,6 @@ def shutDownClient(client):
     client.shutdown(socket.SHUT_RDWR)
     client.close()
   except OSError:
+    print("Client shut down with error.")
+  else:
     print("Client shut down.")
