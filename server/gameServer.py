@@ -45,37 +45,46 @@ def runServer(server):
       playerAddresses.append(addressReceived)
       
     elif messageReceived["action"] == "joinGame":
-      searchingForLobby = True
-      i = 1
-      
-      while searchingForLobby:
-        if not (str(i) + "_" + str(messageReceived["contents"]["currentLevel"])) in lobbies:
-          lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])] = {messageReceived["contents"]["username"]:addressReceived}
-          searchingForLobby = False
-        else:
-          if messageReceived["contents"]["party"] != None:
-            if len(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) < 9 - len(parties[messageReceived["contents"]["party"]]):
-              lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])][messageReceived["contents"]["username"]] = addressReceived
-              
-              for person in parties[messageReceived["contents"]["party"]]:
-                if person != addressReceived:
-                  sendMessage(server, json.dumps({"action":"joinGame", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}).encode("utf-8"), parties[messageReceived["contents"]["party"]][person])
-                
-              searchingForLobby = False
-            else:
-              i += 1
+      if messageReceived["contents"]["lobby"] != None:
+        lobbies[messageReceived["contents"]["lobby"]][messageReceived["contents"]["username"]] = addressReceived
+        
+        for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
+          if player != addressReceived:
+            sendMessage(server, json.dumps({"action":"updatePlayer", "contents": messageReceived["contents"]}).encode("utf-8"), player)
           else:
-            if len(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) < 8:
-              lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])][messageReceived["contents"]["username"]] = addressReceived
-              searchingForLobby = False
+            sendMessage(server, json.dumps({"action":"joinedLobby", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}).encode("utf-8"), player)
+      else:
+        searchingForLobby = True
+        i = 1
+        
+        while searchingForLobby:
+          if not (str(i) + "_" + str(messageReceived["contents"]["currentLevel"])) in lobbies:
+            lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])] = {messageReceived["contents"]["username"]: addressReceived}
+            searchingForLobby = False
+          else:
+            if messageReceived["contents"]["party"] != None:
+              if len(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) < 9 - len(parties[messageReceived["contents"]["party"]]):
+                lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])][messageReceived["contents"]["username"]] = addressReceived
+                searchingForLobby = False
+              else:
+                i += 1
             else:
-              i += 1
-      
-      for player in list(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])].values()):
-        if player != addressReceived:
-          sendMessage(server, json.dumps({"action":"updatePlayer", "contents": messageReceived["contents"]}).encode("utf-8"), player)
-        else:
-          sendMessage(server, json.dumps({"action":"joinedLobby", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}).encode("utf-8"), player)
+              if len(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) < 8:
+                lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])][messageReceived["contents"]["username"]] = addressReceived
+                searchingForLobby = False
+              else:
+                i += 1
+
+          if messageReceived["contents"]["party"] != None:
+            for person in parties[messageReceived["contents"]["party"]]:
+              if parties[messageReceived["contents"]["party"]][person] != addressReceived:
+                sendMessage(server, json.dumps({"action":"joinGame", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}).encode("utf-8"), parties[messageReceived["contents"]["party"]][person])
+        
+        for player in list(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])].values()):
+          if player != addressReceived:
+            sendMessage(server, json.dumps({"action":"updatePlayer", "contents": messageReceived["contents"]}).encode("utf-8"), player)
+          else:
+            sendMessage(server, json.dumps({"action":"joinedLobby", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}).encode("utf-8"), player)
 
     elif messageReceived["action"] == "leaveGame":
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):

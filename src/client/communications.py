@@ -1,4 +1,5 @@
 import json
+import time
 
 from client.gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
 from globalVariables import globalVariables
@@ -44,6 +45,7 @@ def receiveAndManageMessages():
       if messageReceived["contents"]["username"] in globalVariables["playersInLobby"]:
         globalVariables["playersInLobby"][messageReceived["contents"]["username"]].updateJumper(messageReceived["contents"]["position"][0], messageReceived["contents"]["position"][1])
       else:
+        print("New player:", globalVariables["playersInParty"])
         globalVariables["playersInLobby"][messageReceived["contents"]["username"]] = OtherJumpers(messageReceived["contents"]["position"][0], messageReceived["contents"]["position"][1])
 
     elif messageReceived["action"] == "deletePlayer":
@@ -68,10 +70,9 @@ def receiveAndManageMessages():
     elif messageReceived["action"] == "partyDeletePlayer":
       globalVariables["playersInParty"].remove(messageReceived["contents"]["player"][0])
 
-    # elif messageReceived["action"] == "joinedLobby":
-    #   globalVariables["veiwingHomeScreen"] = False
-    #   globalVariables["playingGame"] = True
-    #   globalVariables["currentLevel"] = messageReceived["contents"]["lobby"].split("_")[1]
-    #   sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None}})
-    #   time.sleep(0.5)
-    #   globalVariables["status"] = "In game"
+    elif messageReceived["action"] == "joinGame":
+      globalVariables["veiwingHomeScreen"] = False
+      globalVariables["playingGame"] = True
+      globalVariables["lobby"] = messageReceived["contents"]["lobby"]
+      sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None, "lobby":messageReceived["contents"]["lobby"]}})
+      globalVariables["status"] = "In game"
