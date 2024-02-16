@@ -1,4 +1,5 @@
 import time
+
 from client.communications import sendAMessage
 from globalVariables import globalVariables
 from game.jumper import jumper

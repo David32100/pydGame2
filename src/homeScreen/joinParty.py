@@ -1,4 +1,5 @@
 import pygame
+
 from globalVariables import globalVariables
 from drawingFunctions import shutdownGame, writeText
 from client.communications import sendAMessage

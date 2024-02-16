@@ -1,7 +1,9 @@
 import pygame
+
 from globalVariables import globalVariables
 from game.levels import levels
 from drawingFunctions import shutdownGame, writeText
+from client.communications import sendAMessage
 
 boxColor = (0, 255, 0, 255)
 
@@ -26,6 +28,8 @@ def drawSelectLevel():
   checkMouse = False
 
   while selectingLevel:
+    sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"]}})
+  
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         selectingLevel = False

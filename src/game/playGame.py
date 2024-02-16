@@ -7,9 +7,11 @@ from globalVariables import globalVariables
 from game.jumper import jumper
 from drawingFunctions import shutdownGame
 from drawingFunctions import leaveLobby
+from client.communications import sendAMessage
 
 def playGame():
   while globalVariables["playingGame"]:
+    sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"]}})
     globalVariables["clock"].tick_busy_loop(globalVariables["fps"])
 
     for event in pygame.event.get():

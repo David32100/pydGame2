@@ -19,8 +19,10 @@ def drawHomeScreen(checkMouseEvent: bool):
     allEvents = (joinGameEvent, selectLevelEvent, joinPartyEvent, settingsEvent)
 
     for event in allEvents:
-      if checkColor(mouseX, mouseY) == event[0]:
-        event[1]()
+      color,function = event
+      
+      if checkColor(mouseX, mouseY) == color:
+        function()
 
     checkMouseEvent = False
 
