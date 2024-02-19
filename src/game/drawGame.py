@@ -14,27 +14,19 @@ def drawGame():
     object.draw((objectRect[0] - globalVariables["scroll"], objectRect[1], objectRect[2], objectRect[3]))
 
 def updateJumperPosition(jumper):
-  global sendJumpingMessage
   pressedKeys = pygame.key.get_pressed()
 
-  for key in list(jumper.keyBinds.keys()):
-    if pressedKeys[key]:
-      jumper.keyBinds[key](jumper.speed)
+  if pressedKeys[pygame.K_LEFT]:
+    jumper.moveLeft()
 
-  if not pressedKeys[pygame.K_UP] and not pressedKeys[pygame.K_SPACE] and not pressedKeys[pygame.K_w]:
-    jumper.dontJump()
-    sendJumpingMessage = False
-  else:
-    if jumper.checkJumperCollision()["Bottom"]:
-      sendJumpingMessage = True
-    
-    jumper.jump(jumper.speed)
+  if pressedKeys[pygame.K_RIGHT]:
+    jumper.moveRight()
 
-  if sendJumpingMessage:
-    sendAMessage({"action":"JUMP!!!", "contents":{"lobby":globalVariables["lobby"]}})
+  if not pressedKeys[pygame.K_LEFT] and not pressedKeys[pygame.K_RIGHT]:
+    jumper.slowDownIfNotMoving()
 
-  jumper.scrollScreen(jumper.speed)
-  jumper.experienceGravity()
+
+  jumper.scrollScreen()
   jumper.winLevelIfTouchingGoal()
   jumper.drawJumper()
   sendAMessage({"action":"updatePlayer", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"], "position":(jumper.jumperXWithScroll, jumper.jumperY)}})
