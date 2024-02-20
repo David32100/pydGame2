@@ -24,10 +24,20 @@ def updateJumperPosition(jumper):
 
   if not pressedKeys[pygame.K_LEFT] and not pressedKeys[pygame.K_RIGHT]:
     jumper.slowDownIfNotMoving()
+  
+  if pressedKeys[pygame.K_UP]:
+    jumper.jump()
+    sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"]}})
+  
+  if not pressedKeys[pygame.K_UP]:
+    if jumper.canJump:
+      jumper.stopJumping()
+      sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
 
-
+  jumper.experienceGravity()
   jumper.scrollScreen()
   jumper.winLevelIfTouchingGoal()
+  jumper.dieIfTouchingBottom()
   jumper.drawJumper()
   sendAMessage({"action":"updatePlayer", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"], "position":(jumper.jumperXWithScroll, jumper.jumperY)}})
   

@@ -19,6 +19,8 @@ def joinParty():
   checkMouse = False
 
   while choosingParty:
+    sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"]}})
+    
     if globalVariables["party"] == None:
       for event in pygame.event.get():
         if event.type == pygame.QUIT:
