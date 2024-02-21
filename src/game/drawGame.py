@@ -27,6 +27,10 @@ def updateJumperPosition(jumper):
   
   if pressedKeys[pygame.K_UP]:
     jumper.jump()
+
+    if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT]:
+      jumper.moveRight()
+
     sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"]}})
   
   if not pressedKeys[pygame.K_UP]:

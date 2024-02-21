@@ -97,12 +97,7 @@ def runServer(server):
     elif messageReceived["action"] == "leaveServer":
       playerAddresses.remove(addressReceived)
 
-    elif messageReceived["action"] == "updatePlayer":
-      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
-        if player != addressReceived:
-          sendMessage(server, json.dumps({"action":messageReceived["action"], "contents":messageReceived["contents"]}).encode("utf-8"), player)
-
-    elif messageReceived["action"] == "JUMP!!!":
+    elif messageReceived["action"] == "startJump" or messageReceived["action"] == "stopJump" or messageReceived["action"] == "updatePlayer":
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
           sendMessage(server, json.dumps(messageReceived).encode("utf-8"), player)

@@ -1,5 +1,5 @@
 import json
-import time
+import pygame
 
 from client.gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
 from globalVariables import globalVariables
@@ -35,6 +35,8 @@ def receiveMessages():
     return ({"actions":None}, None)
   
 def receiveAndManageMessages():
+  jumping = False
+
   while True:
     messageReceived, addressReceived = receiveMessages()
 
@@ -50,9 +52,6 @@ def receiveAndManageMessages():
 
     elif messageReceived["action"] == "deletePlayer":
       globalVariables["playersInLobby"].pop(messageReceived["contents"]["username"])
-
-    elif messageReceived["action"] == "JUMP!!!":
-      jumper.messageInitiatedJump()
 
     elif messageReceived["action"] == "partyJoined":
       globalVariables["party"] = messageReceived["contents"]["party"]
@@ -76,3 +75,19 @@ def receiveAndManageMessages():
       globalVariables["lobby"] = messageReceived["contents"]["lobby"]
       sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None, "lobby":messageReceived["contents"]["lobby"]}})
       globalVariables["status"] = "In game"
+    
+    elif messageReceived["action"] == "startJump":
+      print("START THE JUMP!!!")
+      jumping = True
+
+    elif messageReceived["action"] == "stopJump":
+      print("STOP THE JUMP!!!")
+      jumper.stopJumping()
+      jumping = False
+
+    if jumping:
+      jumper.jump()
+      pressedKeys = pygame.key.get_pressed()
+
+      if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT]:
+        jumper.moveRight()
