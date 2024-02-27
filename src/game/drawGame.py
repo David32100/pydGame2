@@ -2,7 +2,7 @@ import pygame
 
 from globalVariables import globalVariables
 from game.levels import levels
-from client.communications import sendAMessage
+from client.communications import sendAMessage, jumping
 
 sendJumpingMessage = False
 
@@ -15,6 +15,29 @@ def drawGame():
 
 def updateJumperPosition(jumper):
   pressedKeys = pygame.key.get_pressed()
+  global jumping
+
+  if jumping:
+    print("Trying to jump")
+    jumper.jump()
+
+    if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT]:
+      jumper.xVelocity = 0
+      jumper.moveRight()
+  else:
+    if pressedKeys[pygame.K_UP]:
+      jumper.jump()
+
+      if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT]:
+        jumper.xVelocity = 0
+        jumper.moveRight()
+
+      sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"]}})
+  
+    if not pressedKeys[pygame.K_UP]:
+      if jumper.canJump:
+        jumper.stopJumping()
+        sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
 
   if pressedKeys[pygame.K_LEFT]:
     jumper.moveLeft()
@@ -24,19 +47,6 @@ def updateJumperPosition(jumper):
 
   if not pressedKeys[pygame.K_LEFT] and not pressedKeys[pygame.K_RIGHT]:
     jumper.slowDownIfNotMoving()
-  
-  if pressedKeys[pygame.K_UP]:
-    jumper.jump()
-
-    if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT]:
-      jumper.moveRight()
-
-    sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"]}})
-  
-  if not pressedKeys[pygame.K_UP]:
-    if jumper.canJump:
-      jumper.stopJumping()
-      sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
 
   jumper.experienceGravity()
   jumper.scrollScreen()

@@ -36,3 +36,4 @@ def leaveLobby(jumper):
   sendAMessage({"action":"leaveGame", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"]}})
   globalVariables["lobby"] = None
   globalVariables["status"] = "Not in game"
+  globalVariables["playersInLobby"] = {}

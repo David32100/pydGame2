@@ -28,7 +28,7 @@ def drawSelectLevel():
   checkMouse = False
 
   while selectingLevel:
-    sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"]}})
+    sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"], "party":globalVariables["party"]}})
   
     for event in pygame.event.get():
       if event.type == pygame.QUIT:

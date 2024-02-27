@@ -1,5 +1,4 @@
 import json
-import pygame
 
 from client.gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
 from globalVariables import globalVariables
@@ -8,6 +7,7 @@ from game.otherJumpers import OtherJumpers
 
 client = None
 host, port = "127.0.0.1", 36848
+jumping = False
 
 def createGameClient():
   global client
@@ -35,7 +35,7 @@ def receiveMessages():
     return ({"actions":None}, None)
   
 def receiveAndManageMessages():
-  jumping = False
+  global jumping
 
   while True:
     messageReceived, addressReceived = receiveMessages()
@@ -47,11 +47,13 @@ def receiveAndManageMessages():
       if messageReceived["contents"]["username"] in globalVariables["playersInLobby"]:
         globalVariables["playersInLobby"][messageReceived["contents"]["username"]].updateJumper(messageReceived["contents"]["position"][0], messageReceived["contents"]["position"][1])
       else:
-        print("New player:", globalVariables["playersInParty"])
         globalVariables["playersInLobby"][messageReceived["contents"]["username"]] = OtherJumpers(messageReceived["contents"]["position"][0], messageReceived["contents"]["position"][1])
 
     elif messageReceived["action"] == "deletePlayer":
       globalVariables["playersInLobby"].pop(messageReceived["contents"]["username"])
+
+    elif messageReceived["action"] == "updatePlayerStatus":
+      globalVariables["playersInParty"][messageReceived["contents"]["username"]] = messageReceived["contents"]["status"]
 
     elif messageReceived["action"] == "partyJoined":
       globalVariables["party"] = messageReceived["contents"]["party"]
@@ -60,34 +62,25 @@ def receiveAndManageMessages():
       print("Cannot join, party full.")
     
     elif messageReceived["action"] == "playerJoinedParty":
-      globalVariables["playersInParty"].append(messageReceived["contents"]["player"][0])
+      globalVariables["playersInParty"][messageReceived["contents"]["player"][0]] = None
       sendAMessage({"action":"updateParty", "contents":{"username":globalVariables["username"], "address":tuple(messageReceived["contents"]["player"][1])}})
 
     elif messageReceived["action"] == "updatingParty":
-      globalVariables["playersInParty"].append(messageReceived["contents"]["player"][0])
+      globalVariables["playersInParty"][messageReceived["contents"]["player"][0]] = None
 
     elif messageReceived["action"] == "partyDeletePlayer":
-      globalVariables["playersInParty"].remove(messageReceived["contents"]["player"][0])
+      globalVariables["playersInParty"].pop(messageReceived["contents"]["player"][0])
 
     elif messageReceived["action"] == "joinGame":
       globalVariables["veiwingHomeScreen"] = False
       globalVariables["playingGame"] = True
       globalVariables["lobby"] = messageReceived["contents"]["lobby"]
       sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None, "lobby":messageReceived["contents"]["lobby"]}})
+      globalVariables["currentLevel"] = int(messageReceived["contents"]["lobby"].split("_")[1])
       globalVariables["status"] = "In game"
     
-    elif messageReceived["action"] == "startJump":
-      print("START THE JUMP!!!")
-      jumping = True
-
-    elif messageReceived["action"] == "stopJump":
-      print("STOP THE JUMP!!!")
-      jumper.stopJumping()
-      jumping = False
-
-    if jumping:
-      jumper.jump()
-      pressedKeys = pygame.key.get_pressed()
-
-      if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT]:
-        jumper.moveRight()
+    elif messageReceived["action"] == "startJump" or messageReceived["action"] == "stopJump":
+      if messageReceived["action"] == "startJump":
+        jumping = True
+      #else:
+      #  jumping = False

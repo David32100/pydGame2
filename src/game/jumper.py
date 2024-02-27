@@ -17,7 +17,7 @@ class Jumper():
   def __init__(self):
     globalVariables["scroll"] = 0
     self.jumperColor = (0, 0, 255)
-    self.jumperX, self.jumperY = 400, 200
+    self.jumperX, self.jumperY = 300, 409
     self.jumperXWithScroll = self.jumperX + globalVariables["scroll"]
     self.jumperWidth, self.jumperHeight = 20, 40
     self.jumperHeadRadius = 10
@@ -25,7 +25,6 @@ class Jumper():
     self.levelWon = False
     self.scrollThreshold = globalVariables["screenWidth"] / 2
     self.xVelocity, self.yVelocity = 0, 0
-    self.xAcceleration, self.yAcceleration = 0, 0
     self.canJump = False
     self.jumpTimer = 0
     self.canMove = True
@@ -141,10 +140,7 @@ class Jumper():
     globalVariables["scroll"] = 0
     self.alive = True
     self.levelWon = False
-    self.xAcceleration = 0
-    self.yAcceleration = 0
-    self.xVelocity = 0
-    self.yVelocity = 0
+    self.xVelocity, self.yVelocity = 0, 0
     self.canJump = False
     self.jumpTimer = 0
     self.canMove = True

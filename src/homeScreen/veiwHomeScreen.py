@@ -7,7 +7,7 @@ from client.communications import sendAMessage
 
 def veiwHomeScreen():
   while globalVariables["veiwingHomeScreen"]:
-    sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"]}})
+    sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"], "party":globalVariables["party"]}})
     checkMouse = False
     globalVariables["clock"].tick_busy_loop(globalVariables["fps"])
 
