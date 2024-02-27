@@ -7,7 +7,6 @@ from game.otherJumpers import OtherJumpers
 
 client = None
 host, port = "127.0.0.1", 36848
-jumping = False
 
 def createGameClient():
   global client
@@ -35,8 +34,6 @@ def receiveMessages():
     return ({"actions":None}, None)
   
 def receiveAndManageMessages():
-  global jumping
-
   while True:
     messageReceived, addressReceived = receiveMessages()
 
@@ -79,8 +76,8 @@ def receiveAndManageMessages():
       globalVariables["currentLevel"] = int(messageReceived["contents"]["lobby"].split("_")[1])
       globalVariables["status"] = "In game"
     
-    elif messageReceived["action"] == "startJump" or messageReceived["action"] == "stopJump":
-      if messageReceived["action"] == "startJump":
-        jumping = True
-      #else:
-      #  jumping = False
+    elif messageReceived["action"] == "startJump":
+      globalVariables['jumping'] = True
+
+    elif messageReceived["action"] == "stopJump":
+      globalVariables["jumping"] = False

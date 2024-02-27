@@ -2,7 +2,7 @@ import pygame
 
 from globalVariables import globalVariables
 from game.levels import levels
-from client.communications import sendAMessage, jumping
+from client.communications import sendAMessage
 
 sendJumpingMessage = False
 
@@ -15,37 +15,34 @@ def drawGame():
 
 def updateJumperPosition(jumper):
   pressedKeys = pygame.key.get_pressed()
-  global jumping
 
-  if jumping:
-    print("Trying to jump")
+  if globalVariables["jumping"]:
     jumper.jump()
 
-    if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT]:
+    if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT] and not pressedKeys[pygame.K_d] and not pressedKeys[pygame.K_a]:
       jumper.xVelocity = 0
       jumper.moveRight()
   else:
-    if pressedKeys[pygame.K_UP]:
+    if pressedKeys[pygame.K_UP] or pressedKeys[pygame.K_w] or pressedKeys[pygame.K_SPACE]:
       jumper.jump()
 
-      if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT]:
+      if not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_LEFT] and not pressedKeys[pygame.K_a] and not pressedKeys[pygame.K_d]:
         jumper.xVelocity = 0
         jumper.moveRight()
 
       sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"]}})
   
-    if not pressedKeys[pygame.K_UP]:
-      if jumper.canJump:
-        jumper.stopJumping()
-        sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
+    if not pressedKeys[pygame.K_UP] and not pressedKeys[pygame.K_w] and not pressedKeys[pygame.K_SPACE]:
+      jumper.stopJumping()
+      sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
 
-  if pressedKeys[pygame.K_LEFT]:
+  if pressedKeys[pygame.K_LEFT] or pressedKeys[pygame.K_a]:
     jumper.moveLeft()
 
-  if pressedKeys[pygame.K_RIGHT]:
+  if pressedKeys[pygame.K_RIGHT] or pressedKeys[pygame.K_d]:
     jumper.moveRight()
 
-  if not pressedKeys[pygame.K_LEFT] and not pressedKeys[pygame.K_RIGHT]:
+  if not pressedKeys[pygame.K_LEFT] and not pressedKeys[pygame.K_RIGHT] and not pressedKeys[pygame.K_d] and not pressedKeys[pygame.K_a]:
     jumper.slowDownIfNotMoving()
 
   jumper.experienceGravity()
