@@ -5,9 +5,9 @@ screen = pygame.display.set_mode((screenWidth, screenHeight))
 clock = pygame.time.Clock()
 
 savedVariables = {
-  "currentLevel": 10,
-  "discoveredLevels": 10,
-  "username": "The best player2"
+  "currentLevel": 0,
+  "discoveredLevels": 0,
+  "username": None
 }
 
 globalVariables = {
@@ -24,6 +24,7 @@ globalVariables = {
   "status": "Not in game",
   "playingGame": False,
   "veiwingHomeScreen": True,
+  "loggingIn": True,
   "playersInLobby": {},
   "playersInParty": {savedVariables["username"]:"Not in game"},
   "scroll": 0,

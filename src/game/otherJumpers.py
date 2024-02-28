@@ -23,13 +23,6 @@ class OtherJumpers():
   def talk(self, text:str):
     defaultFont = pygame.font.SysFont("freesansbold.ttf", 30)
     text1 = defaultFont.render(text, True, (0, 0, 0), (255, 255, 255))
-    backgroundText = defaultFont.render(text, True, (0, 0, 0), (0, 0, 0))
-
     text1Rect = text1.get_rect()
-    backgroundTextRect = backgroundText.get_rect()
     text1Rect.center = (self.otherJumperX + (self.otherJumperWidth / 2), self.otherJumperY - (self.otherJumperHeadRadius * 2) - 20)
-    backgroundTextRect.center = (self.otherJumperX + (self.otherJumperWidth / 2), self.otherJumperY - (self.otherJumperHeadRadius * 2) - 20)
-
-
-    globalVariables["screen"].blit(backgroundText, backgroundTextRect)
     globalVariables["screen"].blit(text1, text1Rect)

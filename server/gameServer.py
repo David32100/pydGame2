@@ -3,6 +3,8 @@ import threading
 import time
 import json
 
+playerAccounts = []
+
 def createUdpServer(host: str, port: int):
   print("Creating server...")
   newSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -16,7 +18,6 @@ def receiveMessage(server):
   return decodedMessageReceived, addressReceived
 
 def sendMessage(server, message: bytes, address):
-  #print("Sending message:", message, "To:", address)
   server.sendto(message, address)
 
 def askToStopServer(server):
@@ -28,11 +29,30 @@ def askToStopServer(server):
   shutDownServer(server)  
 
 def shutDownServer(server):
+  global playerAccounts
   print("Shutting down server...")
+
+  with open("accounts.JSON", "w") as file:
+    file.seek(0)
+    file.truncate(0)
+    file.write(json.dumps(playerAccounts))
+  
   server.shutdown(socket.SHUT_RDWR)
   server.close()
 
 def runServer(server):
+  global playerAccounts
+
+  try:
+    with open("server/accounts.JSON", "r") as file:
+      accounts = json.loads(file.read())
+  except FileNotFoundError:
+    with open("server/accounts.JSON", "w") as file:
+      file.write(json.dumps({}))
+      accounts = {}
+  
+  playerAccounts = accounts
+  playerAccounts["The best player2"] = {"password": "The best player203/11/09", "username":"The best player2", "discoveredLevels":10, "currentLevel":10}
   playerAddresses = []
   lobbies = {}
   parties = {}
@@ -138,6 +158,12 @@ def runServer(server):
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
           sendMessage(server, json.dumps(messageReceived).encode("utf-8"), player)
+
+    elif messageReceived["action"] == "login":
+      if messageReceived["contents"]["username"] in playerAccounts:
+        if playerAccounts[messageReceived["contents"]["username"]]["password"] == messageReceived["contents"]["password"]:
+          sendMessage(server, json.dumps({"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}).encode("utf-8"), addressReceived)
+          print("Player logged in")
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848
