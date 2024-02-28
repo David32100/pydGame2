@@ -7,7 +7,7 @@ clock = pygame.time.Clock()
 savedVariables = {
   "currentLevel": 10,
   "discoveredLevels": 10,
-  "username": "The best player"
+  "username": "The best player2"
 }
 
 globalVariables = {
@@ -27,5 +27,6 @@ globalVariables = {
   "playersInLobby": {},
   "playersInParty": {savedVariables["username"]:"Not in game"},
   "scroll": 0,
-  "jumping": False
+  "jumping": False,
+  "timers": {}
 }

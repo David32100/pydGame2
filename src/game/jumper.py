@@ -28,6 +28,7 @@ class Jumper():
     self.canJump = False
     self.jumpTimer = 0
     self.canMove = True
+    self.talking = False
     
   def drawJumper(self):
     jumperBody = (self.jumperX, self.jumperY, self.jumperWidth, self.jumperHeight)
@@ -72,7 +73,7 @@ class Jumper():
         self.xVelocity = 0
 
   def experienceGravity(self):
-    if self.canMove:
+    if self.alive:
       if not self.checkJumperCollision(yDisplacement=self.yVelocity)["Bottom"] and (self.jumperY + self.jumperHeight + self.yVelocity) < globalVariables["screenHeight"]:
         if self.yVelocity < 0:
           if not self.checkJumperCollision(yDisplacement=self.yVelocity)["Top"] and (self.jumperY + (self.jumperHeadRadius * 2) + self.yVelocity) > 0:
@@ -109,7 +110,7 @@ class Jumper():
     self.canJump = False
 
   def slowDownIfNotMoving(self):
-    if self.canMove:
+    if self.alive:
       if self.xVelocity > 0 and not self.checkJumperCollision(xDisplacement=self.xVelocity)["Right"] and (self.jumperX + self.jumperWidth + self.xVelocity) < globalVariables["screenWidth"]:
         self.jumperX += self.xVelocity
       elif self.xVelocity < 0 and not self.checkJumperCollision(xDisplacement=self.xVelocity)["Left"] and (self.jumperX + self.xVelocity) > 0:
@@ -144,6 +145,7 @@ class Jumper():
     self.canJump = False
     self.jumpTimer = 0
     self.canMove = True
+    self.talking = False
 
   def winLevelIfTouchingGoal(self):
     self.levelWon = checkIfTouchingColor(self.jumperX, self.jumperY - (self.jumperHeadRadius * 2), self.jumperWidth, self.jumperHeight + (self.jumperHeadRadius * 2), goalColor)
@@ -154,4 +156,17 @@ class Jumper():
       self.canMove = False
       self.jumperColor = (255, 0, 0)
 
+  def talk(self, text:str):
+    defaultFont = pygame.font.SysFont("freesansbold.ttf", 30)
+    text1 = defaultFont.render(text, True, (0, 0, 0), (255, 255, 255))
+    backgroundText = defaultFont.render(text, True, (0, 0, 0), (0, 0, 0))
+
+    text1Rect = text1.get_rect()
+    backgroundTextRect = backgroundText.get_rect()
+    text1Rect.center = (self.jumperX + (self.jumperWidth / 2), self.jumperY - (self.jumperHeadRadius * 2) - 20)
+    backgroundTextRect.center = (self.jumperX + (self.jumperWidth / 2), self.jumperY - (self.jumperHeadRadius * 2) - 20)
+
+    globalVariables["screen"].blit(backgroundText, backgroundTextRect)
+    globalVariables["screen"].blit(text1, text1Rect)
+    
 jumper = Jumper()

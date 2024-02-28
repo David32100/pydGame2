@@ -134,6 +134,11 @@ def runServer(server):
       for player in list(parties[messageReceived["contents"]["party"]].values()):
         sendMessage(server, json.dumps({"action":"partyDeletePlayer", "contents":{"player":(messageReceived["contents"]["username"], addressReceived)}}).encode("utf-8"), player[0])
 
+    elif messageReceived["action"] == "talk":
+      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
+        if player != addressReceived:
+          sendMessage(server, json.dumps(messageReceived).encode("utf-8"), player)
+
 def manageGameServer():
   host, port = "127.0.0.1", 36848
   socket1 = createUdpServer(host, port)

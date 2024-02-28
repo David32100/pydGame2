@@ -11,18 +11,23 @@ from client.communications import sendAMessage
 
 def playGame():
   while globalVariables["playingGame"]:
+    keydownEvent = None
     sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"], "party":globalVariables["party"]}})
     globalVariables["clock"].tick_busy_loop(globalVariables["fps"])
 
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
+        sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
         leaveLobby(jumper)
         shutdownGame()
+      if event.type == pygame.KEYDOWN:
+        keydownEvent = event
 
     if jumper.alive and not jumper.levelWon:
-      drawGameAndUpdateJumperPosition(jumper)
+      drawGameAndUpdateJumperPosition(jumper, keydownEvent)
 
     elif not jumper.alive:
+      sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
       drawDeathScreen(jumper)
 
     elif jumper.levelWon:

@@ -81,3 +81,6 @@ def receiveAndManageMessages():
 
     elif messageReceived["action"] == "stopJump":
       globalVariables["jumping"] = False
+
+    elif messageReceived["action"] == "talk":
+      globalVariables["timers"][str(messageReceived["contents"]["username"]) + "'sTalkingTimer"] = [0, messageReceived["contents"]["text"]]
