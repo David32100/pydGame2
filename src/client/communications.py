@@ -50,6 +50,7 @@ def receiveAndManageMessages():
       globalVariables["playersInParty"][messageReceived["contents"]["username"]] = messageReceived["contents"]["status"]
     elif messageReceived["action"] == "partyJoined":
       globalVariables["party"] = messageReceived["contents"]["party"]
+      globalVariables["playersInParty"][globalVariables["username"]] = "Not in game"
     elif messageReceived["action"] == "partyFull":
       print("Cannot join, party full.")
     elif messageReceived["action"] == "playerJoinedParty":
@@ -73,7 +74,6 @@ def receiveAndManageMessages():
     elif messageReceived["action"] == "talk":
       globalVariables["timers"][str(messageReceived["contents"]["username"]) + "'sTalkingTimer"] = [0, messageReceived["contents"]["text"]]
     elif messageReceived["action"] == "loggedIn":
-      print("Updating globalVariables")
       globalVariables["username"] = messageReceived["contents"]["accountInformation"]["username"]
       globalVariables["loggingIn"] = False
       globalVariables["currentLevel"] = messageReceived["contents"]["accountInformation"]["currentLevel"]

@@ -26,17 +26,18 @@ def askToStopServer(server):
   while stop != "Y":
     stop = input("Stop Server (Y): \n")
 
-  shutDownServer(server)  
+  shutDownServer(server) 
+
+def saveAccounts():
+  with open("server/accounts.JSON", "w") as file:
+    file.seek(0)
+    file.truncate(0)
+    file.write(json.dumps(playerAccounts))
 
 def shutDownServer(server):
   global playerAccounts
   print("Shutting down server...")
-
-  with open("accounts.JSON", "w") as file:
-    file.seek(0)
-    file.truncate(0)
-    file.write(json.dumps(playerAccounts))
-  
+  saveAccounts()
   server.shutdown(socket.SHUT_RDWR)
   server.close()
 
@@ -52,7 +53,6 @@ def runServer(server):
       accounts = {}
   
   playerAccounts = accounts
-  playerAccounts["The best player2"] = {"password": "The best player203/11/09", "username":"The best player2", "discoveredLevels":10, "currentLevel":10}
   playerAddresses = []
   lobbies = {}
   parties = {}
@@ -163,7 +163,19 @@ def runServer(server):
       if messageReceived["contents"]["username"] in playerAccounts:
         if playerAccounts[messageReceived["contents"]["username"]]["password"] == messageReceived["contents"]["password"]:
           sendMessage(server, json.dumps({"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}).encode("utf-8"), addressReceived)
-          print("Player logged in")
+    
+    elif messageReceived["action"] == "signUp":
+      if not messageReceived["contents"]["username"] in playerAccounts:
+        playerAccounts[messageReceived["contents"]["username"]] = {"username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0}
+        sendMessage(server, json.dumps({"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}).encode("utf-8"), addressReceived)
+        saveAccounts()
+
+    elif messageReceived["action"] == "saveProgress":
+      if messageReceived["contents"]["username"] in playerAccounts:
+        playerAccounts[messageReceived["contents"]["username"]]["username"] = messageReceived["contents"]["username"]
+        playerAccounts[messageReceived["contents"]["username"]]["discoveredLevels"] = messageReceived["contents"]["discoveredLevels"]
+        playerAccounts[messageReceived["contents"]["username"]]["currentLevel"] = messageReceived["contents"]["currentLevel"]
+        saveAccounts()
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848

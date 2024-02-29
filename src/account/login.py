@@ -52,16 +52,13 @@ def login():
       if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
         break
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
-        print("Player logging in.")
         sendAMessage({"action":"login", "contents":{"username":username, "password":password}})
         time.sleep(0.1)
 
         if globalVariables["username"] != None:
-          print("Sucsessfully logged in.")
           break
         else:
           failedToLogin = True
-          print("Failed to login.")
 
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 255, 255):
         currentTextBox = "username"
