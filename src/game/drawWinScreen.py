@@ -16,4 +16,5 @@ def drawWinScreen(jumper):
   if pressedKeys[pygame.K_r]:
     jumper.resetJumper()
   if pressedKeys[pygame.K_b] and pressedKeys[pygame.K_y] and pressedKeys[pygame.K_e]:
+    jumper.resetJumper()
     leaveLobby(jumper)

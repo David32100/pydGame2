@@ -13,4 +13,5 @@ def drawDeathScreen(jumper):
   if pressedKeys[pygame.K_SPACE]:
     jumper.resetJumper()
   elif pressedKeys[pygame.K_b] and pressedKeys[pygame.K_y] and pressedKeys[pygame.K_e]:
+    jumper.resetJumper()
     leaveLobby(jumper)

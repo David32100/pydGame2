@@ -4,7 +4,7 @@ from globalVariables import globalVariables
 
 class OtherJumpers():
   def __init__(self, otherJumperX: float, otherJumperY: float):
-    self.otherJumperColor = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    self.otherJumperColor = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 253))
     self.otherJumperX, self.otherJumperY = (otherJumperX - globalVariables["scroll"], otherJumperY)
     self.otherJumperWidth, self.otherJumperHeight = 20, 40
     self.otherJumperHeadRadius = 10

@@ -29,6 +29,7 @@ class Jumper():
     self.jumpTimer = 0
     self.canMove = True
     self.talking = False
+    self.veiwingPauseScreen = False
     
   def drawJumper(self):
     jumperBody = (self.jumperX, self.jumperY, self.jumperWidth, self.jumperHeight)
@@ -146,6 +147,7 @@ class Jumper():
     self.jumpTimer = 0
     self.canMove = True
     self.talking = False
+    self.veiwingPauseScreen = False
 
   def winLevelIfTouchingGoal(self):
     self.levelWon = checkIfTouchingColor(self.jumperX, self.jumperY - (self.jumperHeadRadius * 2), self.jumperWidth, self.jumperHeight + (self.jumperHeadRadius * 2), goalColor)

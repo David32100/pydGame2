@@ -1,12 +1,19 @@
 import pygame
-import time
 
 from globalVariables import globalVariables
 from game.levels import levels
 from client.communications import sendAMessage
+from drawingFunctions import writeText, leaveLobby
 
 sendJumpingMessage = False
 text = ""
+
+def drawAlphaRect(color:tuple, opacity:int, width:float, height:float, position:tuple) -> pygame.Surface:
+  alphaRect = pygame.Surface((width, height))
+  alphaRect.set_alpha(opacity)
+  alphaRect.fill(color)
+  globalVariables["screen"].blit(alphaRect, position)
+  return alphaRect
 
 def drawGame():
   globalVariables["screen"].fill((0, 128, 128))
@@ -115,6 +122,39 @@ def updateJumperPosition(jumper, keydownEvent):
     else:
       globalVariables["timers"].pop(timer)
 
+def drawPauseScreen(jumper):
+  if not jumper.veiwingPauseScreen:
+    pygame.draw.rect(globalVariables["screen"], (255, 255, 254), (globalVariables["screenWidth"] - 65, 25, 40, 40))
+
+    if pygame.mouse.get_pressed()[0]:
+      mouseX, mouseY = pygame.mouse.get_pos()
+
+      if globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 254, 255):
+        jumper.canMove = False
+        jumper.veiwingPauseScreen = True
+  else:
+    drawAlphaRect((0, 0, 0), 150, globalVariables["screenWidth"], globalVariables["screenHeight"], (0, 0))
+    pygame.draw.rect(globalVariables["screen"], (255, 0, 0), ((globalVariables["screenWidth"] / 2) - 125, (globalVariables["screenHeight"] / 2) - 100, 250, 75))
+    pygame.draw.rect(globalVariables["screen"], (0, 255, 0), ((globalVariables["screenWidth"] / 2) - 125, globalVariables["screenHeight"] / 2, 250, 75))
+    pygame.draw.rect(globalVariables["screen"], (0, 0, 255), ((globalVariables["screenWidth"] / 2) - 125, (globalVariables["screenHeight"] / 2) + 100, 250, 75))
+
+    if pygame.mouse.get_pressed()[0]:
+      mouseX, mouseY = pygame.mouse.get_pos()
+
+      if globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
+        jumper.canMove = True
+        jumper.veiwingPauseScreen = False
+      elif globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
+        jumper.resetJumper()
+      elif globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 0, 255, 255):
+        leaveLobby(jumper)
+
+    writeText("freesansbold.ttf", 70, "Pause", (0, 0, 0), (globalVariables["screenWidth"] / 2, (globalVariables["screenHeight"] / 2) - 150))
+    writeText("freesansbold.ttf", 50, "Resume", (0, 0, 0), (globalVariables["screenWidth"] / 2, (globalVariables["screenHeight"] / 2) - 62.5))
+    writeText("freesansbold.ttf", 50, "Restart", (0, 0, 0), (globalVariables["screenWidth"] / 2, (globalVariables["screenHeight"] / 2) + 37.5))
+    writeText("freesansbold.ttf", 50, "Leave", (0, 0, 0), (globalVariables["screenWidth"] / 2, (globalVariables["screenHeight"] / 2) + 137.5))
+
 def drawGameAndUpdateJumperPosition(jumper, keydownEvent):
   drawGame()
   updateJumperPosition(jumper, keydownEvent)
+  drawPauseScreen(jumper)
