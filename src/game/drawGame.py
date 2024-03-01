@@ -41,11 +41,11 @@ def updateJumperPosition(jumper, keydownEvent):
         jumper.moveRight()
 
       if jumper.canMove:
-        sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"]}})
+        sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
   
     if not pressedKeys[pygame.K_UP] and not pressedKeys[pygame.K_w] and not pressedKeys[pygame.K_SPACE]:
       jumper.stopJumping()
-      sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
+      sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
 
   if pressedKeys[pygame.K_LEFT] or pressedKeys[pygame.K_a]:
     jumper.moveLeft()

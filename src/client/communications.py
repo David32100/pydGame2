@@ -7,6 +7,7 @@ from game.otherJumpers import OtherJumpers
 
 client = None
 host, port = "127.0.0.1", 36848
+loginFailed = False
 
 def createGameClient():
   global client
@@ -34,6 +35,8 @@ def receiveMessages():
     return ({"actions":None}, None)
   
 def receiveAndManageMessages():
+  global loginFailed
+
   while True:
     messageReceived, addressReceived = receiveMessages()
 
@@ -47,17 +50,12 @@ def receiveAndManageMessages():
     elif messageReceived["action"] == "deletePlayer":
       globalVariables["playersInLobby"].pop(messageReceived["contents"]["username"])
     elif messageReceived["action"] == "updatePlayerStatus":
-      globalVariables["playersInParty"][messageReceived["contents"]["username"]] = messageReceived["contents"]["status"]
+      globalVariables["playersInParty"][messageReceived["contents"]["username"]][0] = messageReceived["contents"]["status"]
     elif messageReceived["action"] == "partyJoined":
       globalVariables["party"] = messageReceived["contents"]["party"]
-      globalVariables["playersInParty"][globalVariables["username"]] = "Not in game"
-    elif messageReceived["action"] == "partyFull":
-      print("Cannot join, party full.")
+      globalVariables["playersInParty"] = messageReceived["contents"]["playersInParty"]
     elif messageReceived["action"] == "playerJoinedParty":
-      globalVariables["playersInParty"][messageReceived["contents"]["player"][0]] = None
-      sendAMessage({"action":"updateParty", "contents":{"username":globalVariables["username"], "address":tuple(messageReceived["contents"]["player"][1])}})
-    elif messageReceived["action"] == "updatingParty":
-      globalVariables["playersInParty"][messageReceived["contents"]["player"][0]] = None
+      globalVariables["playersInParty"][messageReceived["contents"]["player"][0]] = [None, messageReceived["contents"]["player"][1]]
     elif messageReceived["action"] == "partyDeletePlayer":
       globalVariables["playersInParty"].pop(messageReceived["contents"]["player"][0])
     elif messageReceived["action"] == "joinGame":
@@ -78,3 +76,5 @@ def receiveAndManageMessages():
       globalVariables["loggingIn"] = False
       globalVariables["currentLevel"] = messageReceived["contents"]["accountInformation"]["currentLevel"]
       globalVariables["discoveredLevels"] = messageReceived["contents"]["accountInformation"]["discoveredLevels"]
+    elif messageReceived["action"] == "loginFailed":
+      loginFailed = True

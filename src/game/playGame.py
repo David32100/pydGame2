@@ -17,7 +17,7 @@ def playGame():
 
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
-        sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
+        sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
         leaveLobby(jumper)
         shutdownGame()
       if event.type == pygame.KEYDOWN:
@@ -27,7 +27,7 @@ def playGame():
       drawGameAndUpdateJumperPosition(jumper, keydownEvent)
 
     elif not jumper.alive:
-      sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"]}})
+      sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
       drawDeathScreen(jumper)
 
     elif jumper.levelWon:

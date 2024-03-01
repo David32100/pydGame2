@@ -2,6 +2,7 @@ import socket
 import threading
 import time
 import json
+import hashlib
 
 playerAccounts = []
 
@@ -127,26 +128,21 @@ def runServer(server):
           if player != messageReceived["contents"]["username"]:
             sendMessage(server, json.dumps({"action":"updatePlayerStatus", "contents":messageReceived["contents"]}).encode("utf-8"), parties[messageReceived["contents"]["party"]][player][0])
           else:
-            parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]] = [parties[messageReceived["contents"]["party"]][player][0], messageReceived["contents"]["status"]]
+            parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]][1] = messageReceived["contents"]["status"]
 
     elif messageReceived["action"] == "joinParty":
       if messageReceived["contents"]["party"] in parties:
-        if len(parties[messageReceived["contents"]["party"]]) > 7:
-          sendMessage(server, json.dumps({"action":"partyFull", "contents":{"party":messageReceived["contents"]["party"]}}).encode("utf-8"), addressReceived)
-        else:
-          parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]] = [addressReceived, messageReceived["contents"]["status"]]
+        if len(parties[messageReceived["contents"]["party"]]) < 8:
+          parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]] = [addressReceived, messageReceived["contents"]["status"], messageReceived["contents"]["discoveredLevels"], messageReceived["contents"]["currentLevel"]]
           
           for playerInfo in list(parties[messageReceived["contents"]["party"]].values()):
             if playerInfo[0] == addressReceived:
-              sendMessage(server, json.dumps({"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"]}}).encode("utf-8"), addressReceived)
+              sendMessage(server, json.dumps({"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"], "playersInParty":parties[messageReceived["contents"]["party"]]}}).encode("utf-8"), addressReceived)
             else:
-              sendMessage(server, json.dumps({"action":"playerJoinedParty", "contents":{"party":messageReceived["contents"]["party"], "player":(messageReceived["contents"]["username"], tuple(addressReceived))}}).encode("utf-8"), playerInfo[0])
+              sendMessage(server, json.dumps({"action":"playerJoinedParty", "contents":{"party":messageReceived["contents"]["party"], "player":(messageReceived["contents"]["username"],  messageReceived["contents"]["discoveredLevels"], tuple(addressReceived))}}).encode("utf-8"), playerInfo[0])
       else:
-        parties[messageReceived["contents"]["party"]] = {messageReceived["contents"]["username"]: [addressReceived, messageReceived["contents"]["status"]]}
-        sendMessage(server, json.dumps({"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"]}}).encode("utf-8"), addressReceived)
-
-    elif messageReceived["action"] == "updateParty":
-      sendMessage(server, json.dumps({"action":"updatingParty", "contents":{"player":(messageReceived["contents"]["username"], tuple(addressReceived))}}).encode("utf-8"), tuple(messageReceived["contents"]["address"]))
+        parties[messageReceived["contents"]["party"]] = {messageReceived["contents"]["username"]: [addressReceived, messageReceived["contents"]["status"], messageReceived["contents"]["discoveredLevels"], messageReceived["contents"]["currentLevel"]]}
+        sendMessage(server, json.dumps({"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"], "playersInParty":parties[messageReceived["contents"]["party"]]}}).encode("utf-8"), addressReceived)
 
     elif messageReceived["action"] == "leaveParty":
       parties[messageReceived["contents"]["party"]].pop(messageReceived["contents"]["username"])
@@ -161,12 +157,15 @@ def runServer(server):
 
     elif messageReceived["action"] == "login":
       if messageReceived["contents"]["username"] in playerAccounts:
-        if playerAccounts[messageReceived["contents"]["username"]]["password"] == messageReceived["contents"]["password"]:
+        if playerAccounts[messageReceived["contents"]["username"]]["loggedIn"]:
+          sendMessage(server, json.dumps({"action":"loginFailed", "contents":{"error":"User already logged in"}}).encode("utf-8"), addressReceived)
+        elif playerAccounts[messageReceived["contents"]["username"]]["password"] == hashlib.sha256(messageReceived["contents"]["password"].encode("utf-8")).hexdigest():
           sendMessage(server, json.dumps({"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}).encode("utf-8"), addressReceived)
+          playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = True
     
     elif messageReceived["action"] == "signUp":
       if not messageReceived["contents"]["username"] in playerAccounts:
-        playerAccounts[messageReceived["contents"]["username"]] = {"username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0}
+        playerAccounts[messageReceived["contents"]["username"]] = {"loggedIn": True, "username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0}
         sendMessage(server, json.dumps({"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}).encode("utf-8"), addressReceived)
         saveAccounts()
 
@@ -176,6 +175,9 @@ def runServer(server):
         playerAccounts[messageReceived["contents"]["username"]]["discoveredLevels"] = messageReceived["contents"]["discoveredLevels"]
         playerAccounts[messageReceived["contents"]["username"]]["currentLevel"] = messageReceived["contents"]["currentLevel"]
         saveAccounts()
+
+    elif messageReceived["action"] == "signOut":
+      playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = False
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848

@@ -1,4 +1,4 @@
-# To do: gameServer Ln None Change server to send messages with user codes, None Ln None Hash and salt passwords, homeScreen.joinParty.py Ln 45 Finish party screen (selecting player: username, status, discovered levels, kick {username}), homeScreen.settings.py Ln 12 Make settings screen (In General, Player, Account, Controlls: keybinds, account, player color, delete data, delete account, reset settings, volume, uninstall game, credits, report, etc), None Ln None Do everything else needed to do, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
+# To do: gameServer Ln 64-180 Change server to know which device talking to it, homeScreen.settings.py Ln 12 Make settings screen (In General, Player, Account, Controlls: keybinds, account, player color, delete data, delete account, reset settings, volume, uninstall game, credits, report, etc), None Ln None Do everything else needed to do, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
 import pygame
 import threading
 

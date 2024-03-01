@@ -11,4 +11,4 @@ def loginToAccount():
       signUp()
     
     if not globalVariables["loggingIn"]:
-      sendAMessage({"action":"joinServer"})
+      sendAMessage({"action":"joinServer", "contents":{"username":globalVariables["username"]}})

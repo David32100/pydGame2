@@ -6,6 +6,7 @@ from drawingFunctions import shutdownGame, writeText
 from client.communications import sendAMessage
 
 boxColor = (0, 0, 255, 255)
+veiwingPlayer = None
 
 def drawJoinPartyBox(pygameDraw):
   pygameDraw(globalVariables["screen"], boxColor, ((globalVariables["screenWidth"] / 2) - 150, (globalVariables["screenHeight"] / 2) + 120, 300, 90))
@@ -51,7 +52,7 @@ def joinParty():
 
         if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
           if len(code) == 15 and canJoinParty:
-            sendAMessage({"action":"joinParty", "contents":{"party":code, "username":globalVariables["username"], "status":globalVariables["status"]}})
+            sendAMessage({"action":"joinParty", "contents":{"party":code, "username":globalVariables["username"], "status":globalVariables["status"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
             canJoinParty = False
             choosingParty = False
 
@@ -67,6 +68,8 @@ def joinParty():
       pygame.display.flip()
 
     else:
+      global veiwingPlayer
+
       for event in pygame.event.get():
         if event.type == pygame.QUIT:
           globalVariables["veiwingHomeScreen"] = False
@@ -88,9 +91,15 @@ def joinParty():
           mouseX, mouseY = pygame.mouse.get_pos()
 
           if globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
+            veiwingPlayer = None
             choosingParty = False
 
+          for playerIndex in range(len(globalVariables["playersInParty"])):
+            if globalVariables["screen"].get_at((mouseX, mouseY)) == (1, 0, playerIndex, 255):
+              veiwingPlayer = list(globalVariables["playersInParty"].keys())[playerIndex]
+
           if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
+            veiwingPlayer = None
             globalVariables["playersInParty"] = {globalVariables["username"]:"Not in game"}
             sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
             choosingParty = False
@@ -98,6 +107,12 @@ def joinParty():
             globalVariables["party"] = None
 
         checkMouse = False
+
+        if veiwingPlayer != None and veiwingPlayer in globalVariables["playersInParty"]:
+          writeText("freesansbold.ttf", 35, "User: " + str(veiwingPlayer), (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 50, (globalVariables["screenHeight"] / 2) - 100), 9)
+          writeText("freesansbold.ttf", 35, "Status: " + str(globalVariables["playersInParty"][veiwingPlayer][1]), (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 50, (globalVariables["screenHeight"] / 2) - 40), 9)
+          writeText("freesansbold.ttf", 35, "Discovered levels: " + str(globalVariables["playersInParty"][veiwingPlayer][2]), (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 50, (globalVariables["screenHeight"] / 2) + 20), 9)
+          writeText("freesansbold.ttf", 35, "Current level: " + str(globalVariables["playersInParty"][veiwingPlayer][3]), (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 50, (globalVariables["screenHeight"] / 2) + 80), 9)
 
         writeText("freesansbold.ttf", 60, "Party", (0, 0, 0), (globalVariables["screenWidth"] / 2, 80))
         writeText("freesansbold.ttf", 35, "Leave", (0, 0, 0), (120, globalVariables["screenHeight"] - 70))
@@ -107,11 +122,11 @@ def joinParty():
           if playerIndex >= 4:
             writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].keys())[playerIndex], (255, 255, 255), (237, 121 + 60 * (playerIndex - 4)))
             pygame.draw.line(globalVariables["screen"], (255, 255, 255), (180, 132 + 60 * (playerIndex - 4)), (295, 132 + 60 * (playerIndex - 4)))
-            writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].values())[playerIndex], (255, 255, 255), (237, 146 + 60 * (playerIndex - 4)))
+            writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].values())[playerIndex][1], (255, 255, 255), (237, 146 + 60 * (playerIndex - 4)))
           else:
             writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].keys())[playerIndex], (255, 255, 255), (112, 121 + 60 * playerIndex))
             pygame.draw.line(globalVariables["screen"], (255, 255, 255), (55, 132 + 60 * playerIndex), (170, 132 + 60 * playerIndex))
-            writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].values())[playerIndex], (255, 255, 255), (112, 146 + 60 * playerIndex))
+            writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].values())[playerIndex][1], (255, 255, 255), (112, 146 + 60 * playerIndex))
 
         pygame.display.flip()
 

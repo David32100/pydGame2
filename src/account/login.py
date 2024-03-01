@@ -4,7 +4,7 @@ import time
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import shutdownGameClient, sendAMessage
+from client.communications import shutdownGameClient, sendAMessage, loginFailed
 
 def writeInTextBox(originalText:str, maxCharacters:int, keydownEvent:pygame.event.Event):
   if keydownEvent.key == pygame.K_BACKSPACE:
@@ -20,11 +20,12 @@ def writeInTextBox(originalText:str, maxCharacters:int, keydownEvent:pygame.even
   return originalText
 
 def login():
+  global loginFailed
   checkMouse = False
   username = ""
   password = ""
   currentTextBox = None
-  failedToLogin = False
+  error = ""
 
   while True:
     for event in pygame.event.get():
@@ -41,8 +42,10 @@ def login():
           password = writeInTextBox(password, 24, event)
     
     globalVariables["screen"].fill((0, 255, 255))
+    pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] / 2) - 103, (globalVariables["screenHeight"] / 2) - 103, 356, 56), 3)
+    pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] / 2) - 103, (globalVariables["screenHeight"] / 2) - 3, 356, 56), 3)
     pygame.draw.rect(globalVariables["screen"], (255, 255, 255), ((globalVariables["screenWidth"] / 2) - 100, (globalVariables["screenHeight"] / 2) - 100, 350, 50))
-    pygame.draw.rect(globalVariables["screen"], (255, 255, 254), ((globalVariables["screenWidth"] / 2) - 100, (globalVariables["screenHeight"] / 2), 350, 50))
+    pygame.draw.rect(globalVariables["screen"], (255, 255, 254), ((globalVariables["screenWidth"] / 2) - 100, globalVariables["screenHeight"] / 2, 350, 50))
     pygame.draw.rect(globalVariables["screen"], (255, 0, 0), ((globalVariables["screenWidth"] / 2) - 65, (globalVariables["screenHeight"] / 2) + 100, 130, 60))
     pygame.draw.rect(globalVariables["screen"], (0, 255, 0), ((globalVariables["screenWidth"] / 2) - 115, globalVariables["screenHeight"] - 60, 230, 25))
 
@@ -58,7 +61,7 @@ def login():
         if globalVariables["username"] != None:
           break
         else:
-          failedToLogin = True
+          error = "Username or password is incorrect."
 
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 255, 255):
         currentTextBox = "username"
@@ -69,14 +72,15 @@ def login():
 
       checkMouse = False
 
+    if loginFailed:
+      error = "Already signed in to account."
+
     hiddenPassword = ""
 
     for letter in password:
       hiddenPassword += "*"
 
-    if failedToLogin:
-      writeText("freesansbold.ttf", 25, "Username or password is incorrect.", (255, 0, 0), ((globalVariables["screenWidth"] / 2) + 75, (globalVariables["screenHeight"] / 2) - 25))
-    
+    writeText("freesansbold.ttf", 25, error, (255, 0, 0), ((globalVariables["screenWidth"] / 2) + 75, (globalVariables["screenHeight"] / 2) - 25))
     writeText("freesansbold.ttf", 60, "Login", (0, 0, 0), (globalVariables["screenWidth"] / 2, 75))
     writeText("freesansbold.ttf", 45, "Username:", (0, 0, 0), ((globalVariables["screenWidth"] / 2) - 200, (globalVariables["screenHeight"] / 2) - 75))
     writeText("freesansbold.ttf", 43, "Password:", (0, 0, 0), ((globalVariables["screenWidth"] / 2) - 200, (globalVariables["screenHeight"] / 2) + 25))

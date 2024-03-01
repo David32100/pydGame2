@@ -1,6 +1,7 @@
 import pygame
 import sys
 import time
+import hashlib
 
 from client.communications import shutdownGameClient, sendAMessage
 from account.login import writeInTextBox
@@ -32,6 +33,9 @@ def signUp():
           reenteredPassword = writeInTextBox(reenteredPassword, 24, event)
 
     globalVariables["screen"].fill((0, 255, 255))
+    pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] / 2) - 103, (globalVariables["screenHeight"] / 2) - 148, 356, 56), 3)
+    pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] / 2) - 103, (globalVariables["screenHeight"] / 2) - 63, 356, 56), 3)
+    pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] / 2) - 103, (globalVariables["screenHeight"] / 2) + 22, 356, 56), 3)
     pygame.draw.rect(globalVariables["screen"], (255, 255, 255), ((globalVariables["screenWidth"] / 2) - 100, (globalVariables["screenHeight"] / 2) - 145, 350, 50))
     pygame.draw.rect(globalVariables["screen"], (255, 255, 254), ((globalVariables["screenWidth"] / 2) - 100, (globalVariables["screenHeight"] / 2) - 60, 350, 50))
     pygame.draw.rect(globalVariables["screen"], (255, 255, 253), ((globalVariables["screenWidth"] / 2) - 100, (globalVariables["screenHeight"] / 2) + 25, 350, 50))
@@ -45,7 +49,7 @@ def signUp():
         break
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
         if password == reenteredPassword:
-          sendAMessage({"action":"signUp", "contents":{"username":username, "password":password}})
+          sendAMessage({"action":"signUp", "contents":{"username":username, "password":hashlib.sha256(password.encode("utf-8")).hexdigest()}})
           time.sleep(0.1)
 
           if globalVariables["username"] != None:
