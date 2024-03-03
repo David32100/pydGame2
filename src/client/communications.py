@@ -15,7 +15,7 @@ def createGameClient():
 
 def sendAMessage(message):
   global client
-  messageToSend = json.dumps(message).encode("utf-8")
+  messageToSend = json.dumps([message, globalVariables["username"]]).encode("utf-8")
   sendMessage(client, messageToSend, host, port)
 
 def shutdownGameClient():
@@ -29,13 +29,18 @@ def receiveMessages():
   try:
     messageReceived, addressReceived = receiveMessage(client)
     decodedMessageReceived = json.loads(messageReceived.decode("utf-8"))
-    return decodedMessageReceived, addressReceived
+    message, sender = decodedMessageReceived
+
+    if sender == globalVariables["username"]:
+      return message, addressReceived
+    else:
+      return ({"actions":None}, None)
   except OSError as e:
     print("Failed to receive message:", e)
     return ({"actions":None}, None)
   
 def receiveAndManageMessages():
-  global loginFailed
+  global loginFailed, globalVariables
 
   while True:
     messageReceived, addressReceived = receiveMessages()
@@ -55,7 +60,7 @@ def receiveAndManageMessages():
       globalVariables["party"] = messageReceived["contents"]["party"]
       globalVariables["playersInParty"] = messageReceived["contents"]["playersInParty"]
     elif messageReceived["action"] == "playerJoinedParty":
-      globalVariables["playersInParty"][messageReceived["contents"]["player"][0]] = [None, messageReceived["contents"]["player"][1]]
+      globalVariables["playersInParty"] = messageReceived["contents"]["playersInParty"]
     elif messageReceived["action"] == "partyDeletePlayer":
       globalVariables["playersInParty"].pop(messageReceived["contents"]["player"][0])
     elif messageReceived["action"] == "joinGame":
@@ -78,3 +83,25 @@ def receiveAndManageMessages():
       globalVariables["discoveredLevels"] = messageReceived["contents"]["accountInformation"]["discoveredLevels"]
     elif messageReceived["action"] == "loginFailed":
       loginFailed = True
+    elif messageReceived["action"] == "leaveServer":
+      globalVariables = {
+        "clock": globalVariables["clock"],
+        "screenWidth": globalVariables["screenWidth"],
+        "screenHeight": globalVariables["screenHeight"],
+        "screen": globalVariables["screen"],
+        "fps": 80,
+        "currentLevel": None,
+        "discoveredLevels": None,
+        "username": None,
+        "party": None,
+        "lobby": None,
+        "status": "Not in game",
+        "playingGame": False,
+        "veiwingHomeScreen": True,
+        "loggingIn": True,
+        "playersInLobby": {},
+        "playersInParty": {},
+        "scroll": 0,
+        "jumping": False,
+        "timers": {}
+      }

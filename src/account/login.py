@@ -56,7 +56,7 @@ def login():
         break
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
         sendAMessage({"action":"login", "contents":{"username":username, "password":password}})
-        time.sleep(0.1)
+        time.sleep(1)
 
         if globalVariables["username"] != None:
           break

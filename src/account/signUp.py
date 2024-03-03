@@ -50,7 +50,7 @@ def signUp():
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
         if password == reenteredPassword:
           sendAMessage({"action":"signUp", "contents":{"username":username, "password":argon2.PasswordHasher().hash(password)}})
-          time.sleep(0.1)
+          time.sleep(1)
 
           if globalVariables["username"] != None:
             break
