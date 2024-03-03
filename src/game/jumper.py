@@ -38,6 +38,11 @@ class Jumper():
     if not self.alive:
       self.jumperColor = (255, 0, 0)
 
+    defaultFont = pygame.font.SysFont("freesansbold.ttf", 20)
+    name = defaultFont.render(globalVariables["username"], True, (0, 0, 0))
+    nameRect = name.get_rect()
+    nameRect.center = (self.jumperX + (self.jumperWidth / 2), self.jumperY - (self.jumperHeadRadius * 2) - 10)
+    globalVariables["screen"].blit(name, nameRect)
     pygame.draw.rect(globalVariables["screen"], self.jumperColor, jumperBody)
     pygame.draw.circle(globalVariables["screen"], self.jumperColor, jumperHead, self.jumperHeadRadius)
 
