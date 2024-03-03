@@ -2,7 +2,7 @@ import socket
 import threading
 import time
 import json
-import hashlib
+import argon2
 
 playerAccounts = []
 
@@ -159,9 +159,15 @@ def runServer(server):
       if messageReceived["contents"]["username"] in playerAccounts:
         if playerAccounts[messageReceived["contents"]["username"]]["loggedIn"]:
           sendMessage(server, json.dumps({"action":"loginFailed", "contents":{"error":"User already logged in"}}).encode("utf-8"), addressReceived)
-        elif playerAccounts[messageReceived["contents"]["username"]]["password"] == hashlib.sha256(messageReceived["contents"]["password"].encode("utf-8")).hexdigest():
-          sendMessage(server, json.dumps({"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}).encode("utf-8"), addressReceived)
-          playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = True
+        else:
+          try:
+            passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["password"])
+          except argon2.exceptions.VerificationError or argon2.exceptions.InvalidHashError or argon2.exceptions.VerifyMismatchError:
+            passwordMatches = False
+          
+          if passwordMatches:
+            sendMessage(server, json.dumps({"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}).encode("utf-8"), addressReceived)
+            playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = True
     
     elif messageReceived["action"] == "signUp":
       if not messageReceived["contents"]["username"] in playerAccounts:

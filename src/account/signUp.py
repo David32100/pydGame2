@@ -1,7 +1,7 @@
 import pygame
 import sys
 import time
-import hashlib
+import argon2
 
 from client.communications import shutdownGameClient, sendAMessage
 from account.login import writeInTextBox
@@ -49,7 +49,7 @@ def signUp():
         break
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
         if password == reenteredPassword:
-          sendAMessage({"action":"signUp", "contents":{"username":username, "password":hashlib.sha256(password.encode("utf-8")).hexdigest()}})
+          sendAMessage({"action":"signUp", "contents":{"username":username, "password":argon2.PasswordHasher().hash(password)}})
           time.sleep(0.1)
 
           if globalVariables["username"] != None:
