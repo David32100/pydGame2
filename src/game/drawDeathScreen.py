@@ -15,3 +15,6 @@ def drawDeathScreen(jumper):
   elif pressedKeys[pygame.K_b] and pressedKeys[pygame.K_y] and pressedKeys[pygame.K_e]:
     jumper.resetJumper()
     leaveLobby(jumper)
+
+    if globalVariables["currentLevel"] > globalVariables["discoveredLevels"]:
+      globalVariables["currentLevel"] = globalVariables["discoveredLevels"]

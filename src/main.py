@@ -1,4 +1,4 @@
-# To do: homeScreen.settings.py Ln 12 Make settings screen (In General, Player, Account, Controlls: keybinds, account, player color, delete data, delete account, reset settings, volume, uninstall game, credits, report, etc), joinParty.py Ln None Update discovered levels and current level live, None Ln None Do everything else needed to do, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
+# To do: homeScreen.settings.py Ln 12 Finish settings screen (In General: volume, uninstall game, credits, report, reset settings, delete data, In Player: player color, anonymous, In Account: account info, change username, change password, delete account, In Controlls: keybinds, etc), None Ln None Do everything else needed to do, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
 import pygame
 import threading
 

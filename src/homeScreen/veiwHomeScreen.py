@@ -7,9 +7,9 @@ from client.communications import sendAMessage
 
 def veiwHomeScreen():
   while globalVariables["veiwingHomeScreen"]:
+    globalVariables["clock"].tick_busy_loop(globalVariables["fps"])
     sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"], "party":globalVariables["party"]}})
     checkMouse = False
-    globalVariables["clock"].tick_busy_loop(globalVariables["fps"])
 
     for event in pygame.event.get():
       if event.type == pygame.QUIT:

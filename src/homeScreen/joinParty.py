@@ -62,7 +62,7 @@ def joinParty():
       writeText("freesansbold.ttf", 35, "Join", (0, 0, 0), (120, globalVariables["screenHeight"] - 70))
       writeText("freesansbold.ttf", 35, "Back", (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 230, globalVariables["screenHeight"] - 70))
       writeText("freesansbold.ttf", 50, "Code:", (0, 0, 0), ((globalVariables["screenWidth"] / 2) - 230, (globalVariables["screenHeight"] / 2)))
-      writeText("freesansbold.ttf", 50, code, (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 60, (globalVariables["screenHeight"] / 2)))
+      writeText("freesansbold.ttf", 50, code, (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 30, (globalVariables["screenHeight"] / 2)))
       writeText("freesansbold.ttf", 25, str(len(code)) + "/15", (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 225, (globalVariables["screenHeight"] / 2)))
 
       pygame.display.flip()
@@ -100,11 +100,12 @@ def joinParty():
 
           if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
             veiwingPlayer = None
-            globalVariables["playersInParty"] = {globalVariables["username"]:"Not in game"}
             sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
+            time.sleep(0.5)
             choosingParty = False
             canJoinParty = True
             globalVariables["party"] = None
+            globalVariables["playersInParty"] = {globalVariables["username"]:"Not in game"}
 
         checkMouse = False
 

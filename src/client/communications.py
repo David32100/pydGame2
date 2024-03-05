@@ -55,7 +55,12 @@ def receiveAndManageMessages():
     elif messageReceived["action"] == "deletePlayer":
       globalVariables["playersInLobby"].pop(messageReceived["contents"]["username"])
     elif messageReceived["action"] == "updatePlayerStatus":
-      globalVariables["playersInParty"][messageReceived["contents"]["username"]][0] = messageReceived["contents"]["status"]
+      if "currentLevel" in messageReceived["contents"]:
+        globalVariables["playersInParty"][messageReceived["contents"]["username"]][3] = messageReceived["contents"]["currentLevel"]
+      if "discoveredLevels" in messageReceived["contents"]:
+        globalVariables["playersInParty"][messageReceived["contents"]["username"]][2] = messageReceived["contents"]["discoveredLevels"]
+    
+      globalVariables["playersInParty"][messageReceived["contents"]["username"]][1] = messageReceived["contents"]["status"]
     elif messageReceived["action"] == "partyJoined":
       globalVariables["party"] = messageReceived["contents"]["party"]
       globalVariables["playersInParty"] = messageReceived["contents"]["playersInParty"]

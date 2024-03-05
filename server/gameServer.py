@@ -48,9 +48,7 @@ def shutDownServer(server):
   server.shutdown(socket.SHUT_RDWR)
   server.close()
 
-def runServer(server):
-  global playerAccounts, playerAddresses
-
+def updateServer() -> dict:
   try:
     with open("server/accounts.JSON", "r") as file:
       accounts = json.loads(file.read())
@@ -59,7 +57,11 @@ def runServer(server):
       file.write(json.dumps({}))
       accounts = {}
   
-  playerAccounts = accounts
+  return accounts
+
+def runServer(server):
+  global playerAccounts, playerAddresses
+  playerAccounts = updateServer()
   lobbies = {}
   parties = {}
 
@@ -68,6 +70,25 @@ def runServer(server):
 
     if messageReceived["action"] == "joinServer":
       playerAddresses.append(addressReceived)
+
+    elif messageReceived["action"] == "debugServer":
+      try:
+        with open("server/fixServer.txt", "r") as file:
+          program = eval(file.read())
+
+        try:
+          func = program["action"]
+          args = program["args"]
+          try:
+            func(arg for arg in args)
+          except UnboundLocalError:
+            print("Debug error: Could not run function:", type(func), func, "with args:", type(args), args)
+            print(e)
+        except OSError as e:
+          print("Debug error: Function or arguments not found in:", type(program), program)
+          print(e)
+      except FileNotFoundError:
+        print("Debug error: File not found")
       
     elif messageReceived["action"] == "joinGame":
       if messageReceived["contents"]["lobby"] != None:
@@ -133,8 +154,13 @@ def runServer(server):
           if player != messageReceived["contents"]["username"]:
             sendMessage(server, {"action":"updatePlayerStatus", "contents":messageReceived["contents"]}, parties[messageReceived["contents"]["party"]][player][0])
           else:
+            if "currentLevel" in messageReceived["contents"]:
+              parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]][3] = messageReceived["contents"]["currentLevel"]
+            if "discoveredLevels" in messageReceived["contents"]:
+              parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]][2] = messageReceived["contents"]["discoveredLevels"]
+            
             parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]][1] = messageReceived["contents"]["status"]
-
+            
     elif messageReceived["action"] == "joinParty":
       if messageReceived["contents"]["party"] in parties:
         if len(parties[messageReceived["contents"]["party"]]) < 8:

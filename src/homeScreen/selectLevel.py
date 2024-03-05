@@ -48,6 +48,8 @@ def drawSelectLevel():
       levelScroll += 5
     if keys[pygame.K_LEFT] and levelScroll > 0:
       levelScroll -= 5
+    if keys[pygame.K_d] and keys[pygame.K_b] and keys[pygame.K_u] and keys[pygame.K_g]:
+      sendAMessage({"action":"debugServer"})
 
     if checkMouse:
       mouseX, mouseY = pygame.mouse.get_pos()
@@ -59,6 +61,8 @@ def drawSelectLevel():
         for r in range(255):
           if globalVariables["screen"].get_at((mouseX, mouseY)) == (r, g, 0, 255):
             globalVariables["currentLevel"] = (g * 255) + r
+            sendAMessage({"action":"updateStatus", "contents":{"party":globalVariables["party"], "status":globalVariables["status"], "currentLevel":globalVariables["currentLevel"], "username":globalVariables["username"]}})
+            globalVariables["playersInParty"][globalVariables["username"]][3] = globalVariables["currentLevel"]
             selectingLevel = False
 
       checkMouse = False
