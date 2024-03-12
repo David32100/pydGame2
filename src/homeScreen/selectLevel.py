@@ -62,8 +62,10 @@ def drawSelectLevel():
           if globalVariables["screen"].get_at((mouseX, mouseY)) == (r, g, 0, 255):
             globalVariables["currentLevel"] = (g * 255) + r
             sendAMessage({"action":"updateStatus", "contents":{"party":globalVariables["party"], "status":globalVariables["status"], "currentLevel":globalVariables["currentLevel"], "username":globalVariables["username"]}})
-            globalVariables["playersInParty"][globalVariables["username"]][3] = globalVariables["currentLevel"]
             selectingLevel = False
+
+            if globalVariables["party"] != None:
+              globalVariables["playersInParty"][globalVariables["username"]][3] = globalVariables["currentLevel"]
 
       checkMouse = False
         

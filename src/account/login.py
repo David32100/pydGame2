@@ -59,6 +59,7 @@ def login():
         time.sleep(1)
 
         if globalVariables["username"] != None:
+          globalVariables["veiwingHomeScreen"] = True
           break
         else:
           error = "Username or password is incorrect."

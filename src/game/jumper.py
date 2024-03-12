@@ -16,7 +16,7 @@ def checkIfTouchingColor(spriteX, spriteY, spriteWidth, spriteHeight, colorToChe
 class Jumper():
   def __init__(self):
     globalVariables["scroll"] = 0
-    self.jumperColor = (0, 0, 255)
+    self.jumperColor = globalVariables["userSettings"]["playerColor"]
     self.jumperX, self.jumperY = 300, 409
     self.jumperXWithScroll = self.jumperX + globalVariables["scroll"]
     self.jumperWidth, self.jumperHeight = 20, 40

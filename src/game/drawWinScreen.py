@@ -15,7 +15,9 @@ def drawWinScreen(jumper):
   if globalVariables["currentLevel"] == globalVariables["discoveredLevels"]:
     globalVariables["discoveredLevels"] += 1
     sendAMessage({"action":"updateStatus", "contents":{"party":globalVariables["party"], "status":globalVariables["status"], "discoveredLevels":globalVariables["discoveredLevels"], "username":globalVariables["username"]}})
-    globalVariables["playersInParty"][globalVariables["username"]][2] = globalVariables["discoveredLevels"]
+
+    if globalVariables["party"] != None:
+      globalVariables["playersInParty"][globalVariables["username"]][2] = globalVariables["discoveredLevels"]
 
   pressedKeys = pygame.key.get_pressed()
 

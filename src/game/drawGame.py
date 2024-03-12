@@ -23,7 +23,6 @@ def drawGame():
     object.draw((objectRect[0] - globalVariables["scroll"], objectRect[1], objectRect[2], objectRect[3]))
 
 def updateJumperPosition(jumper, keydownEvent):
-  global talking
   pressedKeys = pygame.key.get_pressed()
 
   if globalVariables["jumping"]:
@@ -132,6 +131,8 @@ def drawPauseScreen(jumper):
       if globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 254, 255):
         jumper.canMove = False
         jumper.veiwingPauseScreen = True
+    
+    writeText("freesansbold.ttf", 40, "||", (0, 0, 0), (globalVariables["screenWidth"] - 45, 45))
   else:
     drawAlphaRect((0, 0, 0), 150, globalVariables["screenWidth"], globalVariables["screenHeight"], (0, 0))
     pygame.draw.rect(globalVariables["screen"], (255, 0, 0), ((globalVariables["screenWidth"] / 2) - 125, (globalVariables["screenHeight"] / 2) - 100, 250, 75))

@@ -17,11 +17,12 @@ globalVariables = {
   "lobby": None,
   "status": "Not in game",
   "playingGame": False,
-  "veiwingHomeScreen": True,
+  "veiwingHomeScreen": False,
   "loggingIn": True,
   "playersInLobby": {},
   "playersInParty": {},
   "scroll": 0,
   "jumping": False,
-  "timers": {}
+  "timers": {},
+  "userSettings": {"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False}
 }

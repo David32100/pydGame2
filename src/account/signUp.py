@@ -53,6 +53,7 @@ def signUp():
           time.sleep(1)
 
           if globalVariables["username"] != None:
+            globalVariables["veiwingHomeScreen"] = True
             break
           else:
             errorMessage = "Account already exists."
