@@ -5,7 +5,7 @@ from drawingFunctions import writeText
 from homeScreen.joinGame import joinGameEvent, drawJoinGameBox, drawJoinGameText
 from homeScreen.selectLevel import selectLevelEvent, drawSelectLevelBox, drawSelectLevelText
 from homeScreen.joinParty import joinPartyEvent, drawJoinPartyBox, drawJoinPartyText
-from homeScreen.settings import settingsEvent, drawSettingsBox, drawSettingsText
+from homeScreen.settingsScreen.settings import settingsEvent, drawSettingsBox, drawSettingsText
 
 def drawHomeScreen(checkMouseEvent: bool):
   globalVariables["screen"].fill((0, 255, 255))

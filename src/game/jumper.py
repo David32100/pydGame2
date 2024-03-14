@@ -142,7 +142,7 @@ class Jumper():
       self.jumperX = self.scrollThreshold
 
   def resetJumper(self):
-    self.jumperColor = (0, 0, 255)
+    self.jumperColor = globalVariables["userSettings"]["playerColor"]
     self.jumperX, self.jumperY = 300, 409
     globalVariables["scroll"] = 0
     self.alive = True

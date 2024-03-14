@@ -12,7 +12,7 @@ from client.communications import sendAMessage
 def playGame():
   while globalVariables["playingGame"]:
     keydownEvent = None
-    sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"], "party":globalVariables["party"]}})
+    sendAMessage({"action":"updateStatus", "contents":{"username": globalVariables["username"], "status":globalVariables["status"], "party":globalVariables["party"], "anonymous":globalVariables["userSettings"]["anonymous"]}})
     globalVariables["clock"].tick_busy_loop(globalVariables["fps"])
 
     for event in pygame.event.get():

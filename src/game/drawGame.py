@@ -23,6 +23,7 @@ def drawGame():
     object.draw((objectRect[0] - globalVariables["scroll"], objectRect[1], objectRect[2], objectRect[3]))
 
 def updateJumperPosition(jumper, keydownEvent):
+  global text
   pressedKeys = pygame.key.get_pressed()
 
   if globalVariables["jumping"]:
@@ -56,16 +57,15 @@ def updateJumperPosition(jumper, keydownEvent):
     jumper.slowDownIfNotMoving()
 
   if pressedKeys[pygame.K_SLASH]:
-    pressedKeyMods = pygame.key.get_mods()
-
-    if pressedKeyMods & pygame.KMOD_SHIFT and pressedKeyMods & pygame.KMOD_CTRL:
-      if jumper.canMove:
-        jumper.canMove = False
-        jumper.talking = True
+    if jumper.canMove and not globalVariables["userSettings"]["hideTextChat"]:
+      jumper.canMove = False
+      jumper.talking = True
+    elif jumper.talking:
+      jumper.canMove = True
+      jumper.talking = False
+      text = ""
 
   if jumper.talking:
-    global text
-
     if keydownEvent != None:
       if keydownEvent.key == pygame.K_BACKSPACE:
         if len(text) > 0:
@@ -89,14 +89,6 @@ def updateJumperPosition(jumper, keydownEvent):
       jumper.talking = False
       text = ""
 
-    if pressedKeys[pygame.K_SLASH]:
-      pressedKeyMods = pygame.key.get_mods()
-
-      if pressedKeyMods & pygame.KMOD_SHIFT and pressedKeyMods & pygame.KMOD_ALT:
-        jumper.canMove = True
-        jumper.talking = False
-        text = ""
-
   jumper.experienceGravity()
   jumper.scrollScreen()
   jumper.winLevelIfTouchingGoal()
@@ -109,7 +101,7 @@ def updateJumperPosition(jumper, keydownEvent):
   
   for timer in list(globalVariables["timers"].keys()):
     if globalVariables["timers"][timer][0] < 5 * globalVariables["fps"]:
-      if timer.split("'")[0] in globalVariables["playersInLobby"]:
+      if timer.split("'")[0] in globalVariables["playersInLobby"] and not globalVariables["userSettings"]["hideTextChat"]:
         globalVariables["playersInLobby"][timer.split("'")[0]].talk(globalVariables["timers"][timer][1])
       elif timer.split("'")[0] == globalVariables["username"]:
         if not jumper.talking:
