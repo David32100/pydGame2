@@ -1,3 +1,4 @@
+import pygame
 import socket
 import threading
 import time
@@ -20,7 +21,7 @@ def receiveMessage(server):
   message, sender = decodedMessageReceived
   return message, (sender, addressReceived)
 
-def sendMessage(server, message, address):
+def sendMessage(server, message: str, address):
   server.sendto(json.dumps([message, address[0]]).encode("utf-8"), address[1])
 
 def askToStopServer(server):
@@ -202,7 +203,7 @@ def runServer(server):
     
     elif messageReceived["action"] == "signUp":
       if not messageReceived["contents"]["username"] in playerAccounts:
-        playerAccounts[messageReceived["contents"]["username"]] = {"loggedIn": True, "username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0}
+        playerAccounts[messageReceived["contents"]["username"]] = {"loggedIn": True, "username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0, "settings":{"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}}}
         sendMessage(server, {"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, addressReceived)
         saveAccounts()
 
@@ -215,6 +216,36 @@ def runServer(server):
 
     elif messageReceived["action"] == "signOut":
       playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = False
+
+    elif messageReceived["action"] == "deleteSave":
+      playerAccounts[messageReceived["contents"]["username"]]["discoveredLevels"] = 0
+      playerAccounts[messageReceived["contents"]["username"]]["currentLevel"] = 0
+      saveAccounts()
+
+    elif messageReceived["action"] == "changeUsername":
+      if messageReceived["contents"]["username"] in playerAccounts and not messageReceived["contents"]["newUsername"] in playerAccounts:
+        try:
+          passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["password"])
+        except argon2.exceptions.VerificationError or argon2.exceptions.InvalidHashError or argon2.exceptions.VerifyMismatchError:
+          passwordMatches = False
+
+        if passwordMatches:
+          playerAccounts[messageReceived["contents"]["newUsername"]] = playerAccounts[messageReceived["contents"]["username"]]
+          playerAccounts[messageReceived["contents"]["newUsername"]]["username"] = messageReceived["contents"]["newUsername"]
+          playerAccounts.pop(messageReceived["contents"]["username"])
+          playerAddresses.remove(addressReceived)
+          playerAddresses.append((messageReceived["contents"]["newUsername"], addressReceived[1]))
+          saveAccounts()
+          sendMessage(server, {"action":"usernameChanged", "contents":{"newUsername":messageReceived["contents"]["newUsername"]}}, addressReceived)
+
+    elif messageReceived["action"] == "deleteAccount":
+      playerAddresses.remove(addressReceived)
+      playerAccounts.pop(messageReceived["contents"]["username"])
+      saveAccounts()
+
+    elif messageReceived["action"] == "updateSettings":
+      playerAccounts[messageReceived["contents"]["username"]]["settings"] = messageReceived["contents"]["settings"]
+      saveAccounts()
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848

@@ -1,3 +1,4 @@
+import pygame
 import json
 
 from client.gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
@@ -86,6 +87,7 @@ def receiveAndManageMessages():
       globalVariables["loggingIn"] = False
       globalVariables["currentLevel"] = messageReceived["contents"]["accountInformation"]["currentLevel"]
       globalVariables["discoveredLevels"] = messageReceived["contents"]["accountInformation"]["discoveredLevels"]
+      globalVariables["userSettings"] = messageReceived["contents"]["accountInformation"]["settings"]
     elif messageReceived["action"] == "loginFailed":
       loginFailed = True
     elif messageReceived["action"] == "leaveServer":
@@ -108,5 +110,8 @@ def receiveAndManageMessages():
         "playersInParty": {},
         "scroll": 0,
         "jumping": False,
-        "timers": {}
+        "timers": {},
+        "userSettings": {"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}}
       }
+    elif messageReceived["action"] == "usernameChanged":
+      globalVariables["username"] = messageReceived["contents"]["newUsername"]

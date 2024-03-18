@@ -16,13 +16,12 @@ boxColor = (127, 0, 0, 255)
 
 def sendEmail(subject:str, message:str):
   messageToSend = """\
-  From: David Gross <David.Gross@rkyhs.org>
-  Subject: Test message
-  
-  Body would go here"""
+Subject:""" + subject + """
+
+""" + message
 
   with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl.create_default_context()) as server:
-    server.login("David.Gross@rkyhs.org", "")
+    server.login("davidgrosstest@gmail.com", "pzwc hhuk iode kwvj")
     server.sendmail("David.Gross@rkyhs.org", "David.Gross@rkyhs.org", messageToSend)
 
 def drawSettingsBox(pygameDraw):
@@ -47,6 +46,7 @@ def settings():
   newUsername = ""
   addingButton = False
   buttonPressed = False
+  email = ""
 
   while changingSettings:
     for event in pygame.event.get():
@@ -92,13 +92,13 @@ def settings():
     if currentSettingsBox == "Volume":
       drawVolumeScreen(checkMouse, newUserSettings)
     elif currentSettingsBox == "Report":
-      drawReportScreen(checkMouse)
+      drawReportScreen(checkMouse, sendEmail, email)
     elif currentSettingsBox == "Credits":
       drawCreditsScreen()
     elif currentSettingsBox == "Reset settings":
       drawResetSettingsScreen(checkMouse, newUserSettings)
     elif currentSettingsBox == "Delete save":
-      drawDeleteSaveScreen(checkMouse)
+      changingSettings = drawDeleteSaveScreen(checkMouse)
     elif currentSettingsBox == "Uninstall game":
       drawUninstallGameScreen(checkMouse)
     elif currentSettingsBox == "Player color":

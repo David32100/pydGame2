@@ -24,10 +24,18 @@ def drawVolumeScreen(checkMouse, newUserSettings):
   writeText("freesansbold.ttf", 30, "+", (255, 255, 255), ((globalVariables["screenWidth"] * (3 / 4)) + 62.5, 275))
   writeText("freesansbold.ttf", 30, "-", (255, 255, 255), ((globalVariables["screenWidth"] * (3 / 4)) - 86, 275))
 
-def drawReportScreen(checkMouse):
+def drawReportScreen(checkMouse, sendEmail, email):
   writeText("freesansbold.ttf", 35, "Report", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
   writeText("freesansbold.ttf", 30, "Report a bug or player.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
-    
+  pygame.draw.rect(globalVariables["screen"], (1, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 50, 325, 100, 50))
+  
+  if checkMouse:
+    if globalVariables["screen"].get_at(pygame.mouse.get_pos()) == (1, 0, 0, 255):
+      sendEmail("BUG REPORT!!!", email)
+      email = ""
+
+  writeText("freesansbold.ttf", 30, "Send", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 350))
+
 def drawCreditsScreen():
   writeText("freesansbold.ttf", 35, "Credits", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
   writeText("freesansbold.ttf", 35, "Main programmer:", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
@@ -63,7 +71,6 @@ def drawDeleteSaveScreen(checkMouse):
   if checkMouse and globalVariables["screen"].get_at(pygame.mouse.get_pos()) == (1, 0, 0, 255):
     sendAMessage({"action":"deleteSave", "contents":{"username":globalVariables["username"]}})
     globalVariables["veiwingHomeScreen"] = False
-    changingSettings = False
 
     if globalVariables["party"] != None:
       sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
@@ -72,8 +79,10 @@ def drawDeleteSaveScreen(checkMouse):
     sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
     globalVariables["loggingIn"] = True
     globalVariables["username"] = None
+    return False
 
   writeText("freesansbold.ttf", 30, "Delete", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 300))
+  return True
 
 def drawUninstallGameScreen(checkMouse):
   writeText("freesansbold.ttf", 35, "Uninstall Game", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))

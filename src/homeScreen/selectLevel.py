@@ -44,7 +44,7 @@ def drawSelectLevel():
 
     keys = pygame.key.get_pressed()
 
-    if keys[pygame.K_RIGHT] and levelScroll < 177725:
+    if keys[pygame.K_RIGHT] and levelScroll < int(globalVariables["discoveredLevels"] / 10) * (globalVariables["screenWidth"] + 50):
       levelScroll += 5
     if keys[pygame.K_LEFT] and levelScroll > 0:
       levelScroll -= 5

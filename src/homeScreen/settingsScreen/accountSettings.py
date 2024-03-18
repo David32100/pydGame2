@@ -18,7 +18,7 @@ def drawAccountInfoScreen():
   writeText("freesansbold.ttf", 30, "don't get your actual password.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 375))
 
 def drawChangeUsernameScreen(checkMouse, password, newUsername, currentTextBox):
-  writeText("freesansbold.ttf", 35, "Change username", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
+  writeText("freesansbold.ttf", 35, "Change Username", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
   writeText("freesansbold.ttf", 30, "Change your username.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 125))
   writeText("freesansbold.ttf", 30, "This can't be undone!", (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
   pygame.draw.rect(globalVariables["screen"], (255, 255, 254), ((globalVariables["screenWidth"] * (3 / 4)) - 35, 185, 180, 35))
@@ -26,25 +26,33 @@ def drawChangeUsernameScreen(checkMouse, password, newUsername, currentTextBox):
   pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 36, 184, 182, 37), 1)
   pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 36, 259, 182, 37), 1)
   pygame.draw.rect(globalVariables["screen"], (1, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 50, 325, 100, 50))
-
+  
   if checkMouse:
     screenColor = globalVariables["screen"].get_at(pygame.mouse.get_pos())
     
+  hiddenPassword = ""
+
+  for letter in password:
+    hiddenPassword += "*"
+
+  writeText("freesansbold.ttf", 25, str(hiddenPassword), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 55, 205))
+  writeText("freesansbold.ttf", 25, str(newUsername), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 55, 275))
+  writeText("freesansbold.ttf", 25, "Password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 200))
+  writeText("freesansbold.ttf", 25, "New username:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 275))
+  writeText("freesansbold.ttf", 30, "Change", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 350))
+
+  if checkMouse:
     if screenColor == (255, 255, 254, 255):
       return "password"
     elif screenColor == (255, 255, 253, 255):
       return "newUsername"
     elif screenColor == (1, 0, 0, 255):
-      sendAMessage({"action":"changeUsername", "contents":{"Password":password, "newUsername":newUsername, "username":globalVariables["username"]}})
-      return None
+      if globalVariables["party"] == None:
+        sendAMessage({"action":"changeUsername", "contents":{"password":password, "newUsername":newUsername, "username":globalVariables["username"]}})
+        return None
     else:
       return ""
-
-  writeText("freesansbold.ttf", 25, str(password), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 55, 200))
-  writeText("freesansbold.ttf", 25, str(newUsername), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 55, 275))
-  writeText("freesansbold.ttf", 25, "Password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 200))
-  writeText("freesansbold.ttf", 25, "New username:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 275))
-  writeText("freesansbold.ttf", 30, "Change", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 350))
+    
   return currentTextBox
 
 def drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBox):
@@ -60,6 +68,13 @@ def drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBo
   if checkMouse:
     screenColor = globalVariables["screen"].get_at(pygame.mouse.get_pos())
     
+  writeText("freesansbold.ttf", 20, str(oldPassword), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 65, 200))
+  writeText("freesansbold.ttf", 20, str(newPassword), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 65, 275))
+  writeText("freesansbold.ttf", 25, "Old password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 200))
+  writeText("freesansbold.ttf", 25, "New password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 275))
+  writeText("freesansbold.ttf", 30, "Change", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 350))
+  
+  if checkMouse:
     if screenColor == (255, 255, 254, 255):
       return "oldPassword"
     elif screenColor == (255, 255, 253, 255):
@@ -70,11 +85,6 @@ def drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBo
     else:
       return ""
 
-  writeText("freesansbold.ttf", 20, str(oldPassword), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 65, 200))
-  writeText("freesansbold.ttf", 20, str(newPassword), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 65, 275))
-  writeText("freesansbold.ttf", 25, "Old password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 200))
-  writeText("freesansbold.ttf", 25, "New password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 275))
-  writeText("freesansbold.ttf", 30, "Change", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 350))
   return currentTextBox
 
 def drawLogOutScreen(checkMouse):
@@ -107,14 +117,12 @@ def drawDeleteAccountScreen(checkMouse):
   pygame.draw.rect(globalVariables["screen"], (1, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 50, 275, 100, 50))
 
   if checkMouse and globalVariables["screen"].get_at(pygame.mouse.get_pos()) == (1, 0, 0, 255):
-    sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
-    globalVariables["veiwingHomeScreen"] = False
-
     if globalVariables["party"] != None:
       sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
 
+    sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
+    globalVariables["veiwingHomeScreen"] = False
     globalVariables["status"] = "Offline"
-    sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
     globalVariables["loggingIn"] = True
     globalVariables["username"] = None
     return False
