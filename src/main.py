@@ -1,4 +1,4 @@
-# To do: None Ln None Finish making settings work (Report, Anonymous mode), None Ln None Do everything else needed to do, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
+# To do: None Ln None Finish making reporting works, None Ln None Do everything else needed to do, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
 import pygame
 import threading
 

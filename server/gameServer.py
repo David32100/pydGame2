@@ -65,6 +65,7 @@ def runServer(server):
   playerAccounts = updateServer()
   lobbies = {}
   parties = {}
+  anonymousPlayers = {}
 
   while True:
     messageReceived, addressReceived = receiveMessage(server)
@@ -72,28 +73,45 @@ def runServer(server):
     if messageReceived["action"] == "joinServer":
       playerAddresses.append(addressReceived)
 
+    elif messageReceived["action"] == "anonymousModeOn":
+      i = 0
+
+      while True:
+        if not "anonymousPlayer" + str(i) in list(anonymousPlayers.values()):
+          anonymousPlayers[messageReceived["contents"]["username"]] = "anonymousPlayer" + str(i)
+          sendMessage(server, {"action":"changedVisibleUsername", "contents":{"visibleUsername":"anonymousPlayer" + str(i)}}, addressReceived)
+          break
+        else:
+          i += 1
+
     elif messageReceived["action"] == "debugServer":
       try:
-        with open("server/fixServer.txt", "r") as file:
-          program = eval(file.read())
-
         try:
-          func = program["action"]
-          args = program["args"]
+          with open("server/fixServer.txt", "r") as file:
+            program = eval(file.read())
+
           try:
-            func(arg for arg in args)
-          except UnboundLocalError:
-            print("Debug error: Could not run function:", type(func), func, "with args:", type(args), args)
+            func = program["action"]
+            args = program["args"]
+            try:
+              func(*args)
+            except UnboundLocalError:
+              print("Debug error: Could not run function:", type(func), func, "with args:", type(args), args)
+              print(e)
+          except OSError as e:
+            print("Debug error: Function or arguments not found in:", type(program), program)
             print(e)
-        except OSError as e:
-          print("Debug error: Function or arguments not found in:", type(program), program)
-          print(e)
-      except FileNotFoundError:
-        print("Debug error: File not found")
-      
+        except FileNotFoundError:
+          print("Debug error: File not found")
+      except:
+        print("Debug error: An unknown error occured.")
+        
     elif messageReceived["action"] == "joinGame":
       if messageReceived["contents"]["lobby"] != None:
         lobbies[messageReceived["contents"]["lobby"]][messageReceived["contents"]["username"]] = addressReceived
+
+        if messageReceived["contents"]["username"] in anonymousPlayers:
+          messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
         
         for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
           if player != addressReceived:
@@ -129,22 +147,35 @@ def runServer(server):
         
         for player in list(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])].values()):
           if player != addressReceived:
+            if messageReceived["contents"]["username"] in anonymousPlayers:
+              messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
             sendMessage(server, {"action":"updatePlayer", "contents": messageReceived["contents"]}, player)
           else:
             sendMessage(server, {"action":"joinedLobby", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}, player)
 
     elif messageReceived["action"] == "leaveGame":
-      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
-        if player != addressReceived:
-          sendMessage(server, {"action":"deletePlayer", "contents":messageReceived["contents"]}, player)
-
       lobbies[messageReceived["contents"]["lobby"]].pop(messageReceived["contents"]["username"])
+
+      if messageReceived["contents"]["username"] in anonymousPlayers:
+        messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
+      
+      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
+        sendMessage(server, {"action":"deletePlayer", "contents":messageReceived["contents"]}, player)
+        
       time.sleep(0.1)
 
     elif messageReceived["action"] == "leaveServer":
       playerAddresses.remove(addressReceived)
 
-    elif messageReceived["action"] == "startJump" or messageReceived["action"] == "stopJump" or messageReceived["action"] == "updatePlayer":
+    elif messageReceived["action"] == "startJump" or messageReceived["action"] == "stopJump":
+      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
+        if player != addressReceived:
+          sendMessage(server, messageReceived, player)
+
+    elif messageReceived["action"] == "updatePlayer":
+      if messageReceived["contents"]["username"] in anonymousPlayers:
+        messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
+          
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
           sendMessage(server, messageReceived, player)
@@ -183,6 +214,9 @@ def runServer(server):
         sendMessage(server, {"action":"partyDeletePlayer", "contents":{"player":(messageReceived["contents"]["username"], addressReceived)}}, player[0])
 
     elif messageReceived["action"] == "talk":
+      if messageReceived["contents"]["username"] in anonymousPlayers:
+        messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
+
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
           sendMessage(server, messageReceived, player)
@@ -246,6 +280,11 @@ def runServer(server):
     elif messageReceived["action"] == "updateSettings":
       playerAccounts[messageReceived["contents"]["username"]]["settings"] = messageReceived["contents"]["settings"]
       saveAccounts()
+
+    elif messageReceived["action"] == "anonymousModeOff":
+      if messageReceived["contents"]["username"] in anonymousPlayers:
+        anonymousPlayers.pop(messageReceived["contents"]["username"])
+        sendMessage(server, {"action":"changedVisibleUsername", "contents":{"visibleUsername":messageReceived["contents"]["username"]}}, addressReceived)
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848

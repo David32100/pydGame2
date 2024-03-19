@@ -76,6 +76,12 @@ def receiveAndManageMessages():
       sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None, "lobby":messageReceived["contents"]["lobby"]}})
       globalVariables["currentLevel"] = int(messageReceived["contents"]["lobby"].split("_")[1])
       globalVariables["status"] = "In game"
+
+      if globalVariables["userSettings"]["anonymous"]:
+        sendAMessage({"action":"anonymousModeOn", "contents":{"username":globalVariables["username"]}})
+      else:
+        sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
+        
     elif messageReceived["action"] == "startJump":
       globalVariables['jumping'] = True
     elif messageReceived["action"] == "stopJump":
@@ -84,6 +90,7 @@ def receiveAndManageMessages():
       globalVariables["timers"][str(messageReceived["contents"]["username"]) + "'sTalkingTimer"] = [0, messageReceived["contents"]["text"]]
     elif messageReceived["action"] == "loggedIn":
       globalVariables["username"] = messageReceived["contents"]["accountInformation"]["username"]
+      globalVariables["shownUsername"] = globalVariables["username"]
       globalVariables["loggingIn"] = False
       globalVariables["currentLevel"] = messageReceived["contents"]["accountInformation"]["currentLevel"]
       globalVariables["discoveredLevels"] = messageReceived["contents"]["accountInformation"]["discoveredLevels"]
@@ -111,7 +118,11 @@ def receiveAndManageMessages():
         "scroll": 0,
         "jumping": False,
         "timers": {},
-        "userSettings": {"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}}
+        "userSettings": {"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}},
+        "shownUsername": None
       }
     elif messageReceived["action"] == "usernameChanged":
       globalVariables["username"] = messageReceived["contents"]["newUsername"]
+      globalVariables["shownUsername"] = globalVariables["username"]
+    elif messageReceived["action"] == "changedVisibleUsername":
+      globalVariables["shownUsername"] = messageReceived["contents"]["visibleUsername"]

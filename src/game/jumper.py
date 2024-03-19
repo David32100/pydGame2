@@ -39,7 +39,7 @@ class Jumper():
       self.jumperColor = (255, 0, 0)
 
     defaultFont = pygame.font.SysFont("freesansbold.ttf", 20)
-    name = defaultFont.render(globalVariables["username"], True, (0, 0, 0))
+    name = defaultFont.render(globalVariables["shownUsername"], True, (0, 0, 0))
     nameRect = name.get_rect()
     nameRect.center = (self.jumperX + (self.jumperWidth / 2), self.jumperY - (self.jumperHeadRadius * 2) - 10)
     globalVariables["screen"].blit(name, nameRect)

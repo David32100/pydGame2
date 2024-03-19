@@ -16,7 +16,13 @@ def drawJoinGameText(writeText):
 def joinGame(lobby:str=None):
   globalVariables["veiwingHomeScreen"] = False
   globalVariables["playingGame"] = True
-  sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":globalVariables["party"], "lobby":lobby}})
+
+  if globalVariables["userSettings"]["anonymous"]:
+    sendAMessage({"action":"anonymousModeOn", "contents":{"username":globalVariables["username"]}})
+  else:
+    sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
+    
+  sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":globalVariables["party"], "lobby":lobby, "anonymous":globalVariables["userSettings"]["anonymous"]}})
   time.sleep(0.5)
   globalVariables["status"] = "In game"
 

@@ -59,3 +59,4 @@ def leaveLobby(jumper):
   globalVariables["lobby"] = None
   globalVariables["status"] = "Not in game"
   globalVariables["playersInLobby"] = {}
+  sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
