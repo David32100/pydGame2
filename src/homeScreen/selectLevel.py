@@ -37,6 +37,11 @@ def drawSelectLevel():
         shutdownGame()
       if event.type == pygame.MOUSEBUTTONDOWN:
         checkMouse = True
+      if event.type == pygame.MOUSEWHEEL:
+        if event.x > 0 and levelScroll < int(globalVariables["discoveredLevels"] / 10) * (globalVariables["screenWidth"] + 50):
+          levelScroll += 5
+        if event.x < 0 and levelScroll > 0:
+          levelScroll -= 5
 
     globalVariables["screen"].fill((0, 255, 255))
     drawLevels(levelScroll)

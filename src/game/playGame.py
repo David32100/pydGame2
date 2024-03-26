@@ -17,7 +17,9 @@ def playGame():
 
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
-        sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
+        if globalVariables["lobby"] != None:
+          sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
+        
         leaveLobby(jumper)
         shutdownGame()
       if event.type == pygame.KEYDOWN:

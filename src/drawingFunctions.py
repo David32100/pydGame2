@@ -40,6 +40,8 @@ def writeText(font: str, size: int, text: str, color: tuple,  textPosition: tupl
   return text, textRect
 
 def shutdownGame():
+  sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
+  
   if globalVariables["party"] != None:
     sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
 
@@ -59,4 +61,3 @@ def leaveLobby(jumper):
   globalVariables["lobby"] = None
   globalVariables["status"] = "Not in game"
   globalVariables["playersInLobby"] = {}
-  sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})

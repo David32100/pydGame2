@@ -1,6 +1,4 @@
 import pygame
-import smtplib
-import ssl
 
 from game.jumper import jumper
 from account.login import writeInTextBox
@@ -13,16 +11,6 @@ from homeScreen.settingsScreen.accountSettings import drawAccountInfoScreen, dra
 from homeScreen.settingsScreen.controlsSettings import drawJumpingScreen, drawMovingLeftScreen, drawMovingRightScreen, drawTalkingScreen
 
 boxColor = (127, 0, 0, 255)
-
-def sendEmail(subject:str, message:str):
-  messageToSend = """\
-Subject:""" + subject + """
-
-""" + message
-
-  with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl.create_default_context()) as server:
-    server.login("davidgrosstest@gmail.com", "pzwc hhuk iode kwvj")
-    server.sendmail("David.Gross@rkyhs.org", "David.Gross@rkyhs.org", messageToSend)
 
 def drawSettingsBox(pygameDraw):
   pygameDraw(globalVariables["screen"], boxColor, ((globalVariables["screenWidth"] / 2) + 230, (globalVariables["screenHeight"] / 2) - 230, 100, 40))
@@ -46,7 +34,6 @@ def settings():
   newUsername = ""
   addingButton = False
   buttonPressed = False
-  email = ""
 
   while changingSettings:
     for event in pygame.event.get():
@@ -54,7 +41,7 @@ def settings():
         globalVariables["veiwingHomeScreen"] = False
         changingSettings = False
         shutdownGame()
-      if event.type == pygame.MOUSEBUTTONDOWN:
+      elif event.type == pygame.MOUSEBUTTONDOWN:
         checkMouse = True
       elif event.type == pygame.KEYDOWN:
         if currentTextBox == "password":
@@ -65,16 +52,17 @@ def settings():
           oldPassword = writeInTextBox(oldPassword, 24, event)
         elif currentTextBox == "newPassword":
           newPassword = writeInTextBox(newPassword, 24, event)
-
+        
         if addingButton:
           buttonPressed = event.key
 
     pressedKeys = pygame.key.get_pressed()
 
-    if pressedKeys[pygame.K_UP] and scroll < 0:
-      scroll += 1
-    elif pressedKeys[pygame.K_DOWN] and scroll > -maxScroll:
-      scroll -= 1
+    if currentTextBox != "email":
+      if pressedKeys[pygame.K_UP] and scroll < 0:
+        scroll += 1
+      elif pressedKeys[pygame.K_DOWN] and scroll > -maxScroll: 
+        scroll -= 1
 
     if checkMouse:
       mouseX, mouseY = pygame.mouse.get_pos()
@@ -92,7 +80,7 @@ def settings():
     if currentSettingsBox == "Volume":
       drawVolumeScreen(checkMouse, newUserSettings)
     elif currentSettingsBox == "Report":
-      drawReportScreen(checkMouse, sendEmail, email)
+      drawReportScreen()  
     elif currentSettingsBox == "Credits":
       drawCreditsScreen()
     elif currentSettingsBox == "Reset settings":
@@ -185,6 +173,12 @@ def settings():
         changingSettings = False
         sendAMessage({"action":"updateSettings", "contents":{"settings":newUserSettings, "username":globalVariables["username"]}})
         globalVariables["userSettings"] = newUserSettings
+        
+        if globalVariables["userSettings"]["anonymous"]:
+          sendAMessage({"action":"anonymousModeOn", "contents":{"username":globalVariables["username"]}})
+        else:
+          sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
+
         jumper.resetJumper()
 
       checkMouse = False

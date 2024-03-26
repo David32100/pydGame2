@@ -6,6 +6,8 @@ from globalVariables import globalVariables
 from drawingFunctions import writeText
 from client.communications import sendAMessage, shutdownGameClient
 
+emailPeices = []
+
 def drawVolumeScreen(checkMouse, newUserSettings):
   writeText("freesansbold.ttf", 35, "Volume", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 10, 100))
   writeText("freesansbold.ttf", 30, "The volume of all the", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
@@ -24,17 +26,13 @@ def drawVolumeScreen(checkMouse, newUserSettings):
   writeText("freesansbold.ttf", 30, "+", (255, 255, 255), ((globalVariables["screenWidth"] * (3 / 4)) + 62.5, 275))
   writeText("freesansbold.ttf", 30, "-", (255, 255, 255), ((globalVariables["screenWidth"] * (3 / 4)) - 86, 275))
 
-def drawReportScreen(checkMouse, sendEmail, email):
-  writeText("freesansbold.ttf", 35, "Report", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
-  writeText("freesansbold.ttf", 30, "Report a bug or player.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
-  pygame.draw.rect(globalVariables["screen"], (1, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 50, 325, 100, 50))
-  
-  if checkMouse:
-    if globalVariables["screen"].get_at(pygame.mouse.get_pos()) == (1, 0, 0, 255):
-      sendEmail("BUG REPORT!!!", email)
-      email = ""
-
-  writeText("freesansbold.ttf", 30, "Send", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 350))
+def drawReportScreen():
+  writeText("freesansbold.ttf", 35, "Reoprt", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
+  writeText("freesansbold.ttf", 30, "To report a bug or player,", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
+  writeText("freesansbold.ttf", 30, "send an email to:", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 175))
+  writeText("freesansbold.ttf", 30, "david.gross@rkyhs.org", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 205))
+  writeText("freesansbold.ttf", 30, "with the subject:", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 235))
+  writeText("freesansbold.ttf", 30, "GameTitle Report", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 265))
 
 def drawCreditsScreen():
   writeText("freesansbold.ttf", 35, "Credits", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))

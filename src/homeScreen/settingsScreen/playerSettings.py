@@ -39,6 +39,8 @@ def drawAnonymousModeScreen(checkMouse, newUserSettings):
   writeText("freesansbold.ttf", 35, "Anonymous mode", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
   writeText("freesansbold.ttf", 30, "Hide your username, discovered", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
   writeText("freesansbold.ttf", 30, "levels, and current level.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 175))
+  writeText("freesansbold.ttf", 30, "Warning: Anonymous mode turns", (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 200))
+  writeText("freesansbold.ttf", 30, "off when you leave the game!", (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 225))
   pygame.draw.rect(globalVariables["screen"], (1, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 50, 275, 100, 50))
 
   if checkMouse and globalVariables["screen"].get_at(pygame.mouse.get_pos()) == (1, 0, 0, 255):

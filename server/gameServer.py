@@ -8,23 +8,21 @@ import argon2
 playerAccounts = []
 playerAddresses = []
 
-def createUdpServer(host: str, port: int):
-  print("Creating server...")
+def createUdpServer(host: str, port: int) -> socket.socket:
   newSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   newSocket.bind((host, port))
-  print("Server created.")
   return newSocket
 
-def receiveMessage(server):
+def receiveMessage(server: socket.socket):
   messageReceived, addressReceived = server.recvfrom(1024)
   decodedMessageReceived = json.loads(messageReceived.decode("utf-8"))
   message, sender = decodedMessageReceived
   return message, (sender, addressReceived)
 
-def sendMessage(server, message: str, address):
+def sendMessage(server: socket.socket, message: str, address):
   server.sendto(json.dumps([message, address[0]]).encode("utf-8"), address[1])
 
-def askToStopServer(server):
+def askToStopServer(server: socket.socket):
   stop = input("Stop Server (Y): \n")
 
   while stop != "Y":
@@ -38,7 +36,7 @@ def saveAccounts():
     file.truncate(0)
     file.write(json.dumps(playerAccounts))
 
-def shutDownServer(server):
+def shutDownServer(server: socket.socket):
   global playerAddresses
 
   for address in playerAddresses:
@@ -60,7 +58,7 @@ def updateServer() -> dict:
   
   return accounts
 
-def runServer(server):
+def runServer(server: socket.socket):
   global playerAccounts, playerAddresses
   playerAccounts = updateServer()
   lobbies = {}
@@ -70,7 +68,39 @@ def runServer(server):
   while True:
     messageReceived, addressReceived = receiveMessage(server)
 
-    if messageReceived["action"] == "joinServer":
+    if messageReceived["action"] == "updatePlayer":
+      if messageReceived["contents"]["username"] in anonymousPlayers:
+        messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
+          
+      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
+        if player != addressReceived:
+          sendMessage(server, messageReceived, player)
+
+    elif messageReceived["action"] == "login":
+      if messageReceived["contents"]["username"] in playerAccounts:
+        if playerAccounts[messageReceived["contents"]["username"]]["loggedIn"]:
+          sendMessage(server, {"action":"loginFailed", "contents":{"error":"User already logged in"}}, addressReceived)
+        else:
+          try:
+            passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["password"])
+          except argon2.exceptions.VerificationError:
+            passwordMatches = False
+          except argon2.exceptions.InvalidHashError:
+            passwordMatches = False
+          except argon2.exceptions.VerifyMismatchError:
+            passwordMatches = False
+          
+          if passwordMatches:
+            sendMessage(server, {"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, addressReceived)
+            playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = True
+    
+    elif messageReceived["action"] == "signUp":
+      if not messageReceived["contents"]["username"] in playerAccounts:
+        playerAccounts[messageReceived["contents"]["username"]] = {"loggedIn": True, "username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0, "settings":{"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}}}
+        sendMessage(server, {"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, addressReceived)
+        saveAccounts()
+
+    elif messageReceived["action"] == "joinServer":
       playerAddresses.append(addressReceived)
 
     elif messageReceived["action"] == "anonymousModeOn":
@@ -171,15 +201,6 @@ def runServer(server):
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
           sendMessage(server, messageReceived, player)
-
-    elif messageReceived["action"] == "updatePlayer":
-      if messageReceived["contents"]["username"] in anonymousPlayers:
-        messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
-          
-      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
-        if player != addressReceived:
-          sendMessage(server, messageReceived, player)
-
     elif messageReceived["action"] == "updateStatus":
       if messageReceived["contents"]["party"] != None:
         for player in list(parties[messageReceived["contents"]["party"]].keys()):
@@ -221,31 +242,12 @@ def runServer(server):
         if player != addressReceived:
           sendMessage(server, messageReceived, player)
 
-    elif messageReceived["action"] == "login":
-      if messageReceived["contents"]["username"] in playerAccounts:
-        if playerAccounts[messageReceived["contents"]["username"]]["loggedIn"]:
-          sendMessage(server, {"action":"loginFailed", "contents":{"error":"User already logged in"}}, addressReceived)
-        else:
-          try:
-            passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["password"])
-          except argon2.exceptions.VerificationError or argon2.exceptions.InvalidHashError or argon2.exceptions.VerifyMismatchError:
-            passwordMatches = False
-          
-          if passwordMatches:
-            sendMessage(server, {"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, addressReceived)
-            playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = True
-    
-    elif messageReceived["action"] == "signUp":
-      if not messageReceived["contents"]["username"] in playerAccounts:
-        playerAccounts[messageReceived["contents"]["username"]] = {"loggedIn": True, "username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0, "settings":{"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}}}
-        sendMessage(server, {"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, addressReceived)
-        saveAccounts()
-
     elif messageReceived["action"] == "saveProgress":
       if messageReceived["contents"]["username"] in playerAccounts:
         playerAccounts[messageReceived["contents"]["username"]]["username"] = messageReceived["contents"]["username"]
         playerAccounts[messageReceived["contents"]["username"]]["discoveredLevels"] = messageReceived["contents"]["discoveredLevels"]
         playerAccounts[messageReceived["contents"]["username"]]["currentLevel"] = messageReceived["contents"]["currentLevel"]
+        playerAccounts[messageReceived["contents"]["username"]]["settings"]["anonymous"] = False
         saveAccounts()
 
     elif messageReceived["action"] == "signOut":
@@ -260,7 +262,11 @@ def runServer(server):
       if messageReceived["contents"]["username"] in playerAccounts and not messageReceived["contents"]["newUsername"] in playerAccounts:
         try:
           passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["password"])
-        except argon2.exceptions.VerificationError or argon2.exceptions.InvalidHashError or argon2.exceptions.VerifyMismatchError:
+        except argon2.exceptions.VerificationError:
+          passwordMatches = False
+        except argon2.exceptions.InvalidHashError:
+          passwordMatches = False
+        except argon2.exceptions.VerifyMismatchError:
           passwordMatches = False
 
         if passwordMatches:

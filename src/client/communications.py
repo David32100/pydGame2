@@ -1,5 +1,6 @@
 import pygame
 import json
+import time
 
 from client.gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
 from globalVariables import globalVariables
@@ -41,7 +42,7 @@ def receiveMessages():
     return ({"actions":None}, None)
   
 def receiveAndManageMessages():
-  global loginFailed, globalVariables
+  global globalVariables
 
   while True:
     messageReceived, addressReceived = receiveMessages()
@@ -74,14 +75,9 @@ def receiveAndManageMessages():
       globalVariables["playingGame"] = True
       globalVariables["lobby"] = messageReceived["contents"]["lobby"]
       sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None, "lobby":messageReceived["contents"]["lobby"]}})
+      time.sleep(0.5)
       globalVariables["currentLevel"] = int(messageReceived["contents"]["lobby"].split("_")[1])
       globalVariables["status"] = "In game"
-
-      if globalVariables["userSettings"]["anonymous"]:
-        sendAMessage({"action":"anonymousModeOn", "contents":{"username":globalVariables["username"]}})
-      else:
-        sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
-        
     elif messageReceived["action"] == "startJump":
       globalVariables['jumping'] = True
     elif messageReceived["action"] == "stopJump":

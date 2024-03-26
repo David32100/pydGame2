@@ -51,7 +51,7 @@ def joinParty():
             choosingParty = False
 
         if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
-          if len(code) == 15 and canJoinParty:
+          if canJoinParty:
             sendAMessage({"action":"joinParty", "contents":{"party":code, "username":globalVariables["username"], "status":globalVariables["status"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
             canJoinParty = False
             choosingParty = False

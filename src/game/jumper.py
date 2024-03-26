@@ -167,7 +167,7 @@ class Jumper():
     defaultFont = pygame.font.SysFont("freesansbold.ttf", 30)
     text1 = defaultFont.render(text, True, (0, 0, 0), (255, 255, 255))
     text1Rect = text1.get_rect()
-    text1Rect.center = (self.jumperX + (self.jumperWidth / 2), self.jumperY - (self.jumperHeadRadius * 2) - 20)
+    text1Rect.center = (self.jumperX + (self.jumperWidth / 2), self.jumperY - (self.jumperHeadRadius * 2) - 28)
     globalVariables["screen"].blit(text1, text1Rect)
     
 jumper = Jumper()

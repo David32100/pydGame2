@@ -6,18 +6,39 @@ from globalVariables import globalVariables
 from drawingFunctions import writeText
 from client.communications import shutdownGameClient, sendAMessage, loginFailed
 
-def writeInTextBox(originalText:str, maxCharacters:int, keydownEvent:pygame.event.Event):
-  if keydownEvent.key == pygame.K_BACKSPACE:
-    if len(originalText) > 0:
-      originalText = originalText.removesuffix(originalText[-1])
-  elif keydownEvent.key == pygame.K_SPACE:
-    if (len(originalText) + 1) <= maxCharacters:
+backspaceKeyPressed = False
+
+def writeInTextBox(originalText:str, maxCharacters:int, keyEvents:pygame.event.Event, deleteTextLoop:bool=False):
+  """
+  To use in an event loop
+  deleteTextLoop: boolean - If there is a deleteTextLoop() function for this text box, default is False
+  """
+  global backspaceKeyPressed
+
+  if keyEvents.type == pygame.KEYDOWN:
+    if keyEvents.key == pygame.K_BACKSPACE:
+      if len(originalText) > 0 and not deleteTextLoop:
+        originalText = originalText.removesuffix(originalText[-1])
+    elif keyEvents.key == pygame.K_SPACE and (len(originalText) + 1) <= maxCharacters:
       originalText += " "
-  elif len(pygame.key.name(keydownEvent.key)) < 2:
-    if (len(originalText) + len(pygame.key.name(keydownEvent.key))) <= maxCharacters:
-      originalText += keydownEvent.unicode
-  
+    elif len(pygame.key.name(keyEvents.key)) < 2 and (len(originalText) + len(pygame.key.name(keyEvents.key))) <= maxCharacters:
+      originalText += keyEvents.unicode
+  else:
+    print("ERROR: keyEvents is not a pygame.KEYDOWN event! src/account/login.py Ln 23 \nOriginal text:", originalText, "\nMax characters:", maxCharacters)
+
   return originalText
+
+def deleteTextLoop(originalText:str):
+  """
+  To use with writeInTextBox() outside of event loop
+  """
+  global backspaceKeyPressed
+
+  if pygame.key.get_pressed()[pygame.K_BACKSPACE] and len(originalText) > 0:
+    originalText = originalText.removesuffix(originalText[-1])
+    time.sleep(0.1)
+
+  return originalText  
 
 def login():
   global loginFailed

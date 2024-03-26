@@ -102,7 +102,7 @@ def updateJumperPosition(jumper, keydownEvent):
   jumper.dieIfTouchingBottom()
   jumper.drawJumper()
   sendAMessage({"action":"updatePlayer", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"], "position":(jumper.jumperXWithScroll, jumper.jumperY)}})
-  
+
   for otherJumper in list(globalVariables["playersInLobby"].values()):
     otherJumper.drawJumper()
   
