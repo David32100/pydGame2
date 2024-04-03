@@ -19,5 +19,6 @@ def joinGame(lobby:str=None):
   sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":globalVariables["party"], "lobby":lobby, "anonymous":globalVariables["userSettings"]["anonymous"]}})
   time.sleep(0.5)
   globalVariables["status"] = "In game"
+  jumper.resetJumper()
 
 joinGameEvent = (boxColor, joinGame)

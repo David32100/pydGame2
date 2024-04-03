@@ -1,4 +1,4 @@
-# To do: Make dead players dissapear, None Ln None Do everything else needed to do, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
+# To do: Make dead players disappear, Make level maker, None Ln None Do everything else needed to do, None Ln None Add SFX and music, None Ln None Add graphics and transitions, None Ln None Polish game, Final step: Setup and share the new game!!!
 import pygame
 import threading
 

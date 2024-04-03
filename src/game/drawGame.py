@@ -15,14 +15,21 @@ def drawAlphaRect(color:tuple, opacity:int, width:float, height:float, position:
   globalVariables["screen"].blit(alphaRect, position)
   return alphaRect
 
-def drawGame(keyDownEvent):
+def drawGame():
   globalVariables["screen"].fill((0, 128, 128))
   
   for object in levels[globalVariables["currentLevel"]][2]:
     objectRect = levels[globalVariables["currentLevel"]][2][object]
-    object.draw((objectRect[0] - globalVariables["scroll"], objectRect[1], objectRect[2], objectRect[3]))
+    objectX = objectRect[0]
+    objectX = objectRect[0] - globalVariables["scroll"]
+    changedObjectRect = [objectX]
 
-def updateJumperPosition(jumper, keydownEvent):
+    for objectPeice in objectRect[1:]:
+      changedObjectRect.append(objectPeice)
+
+    object.draw(changedObjectRect)
+
+def updateJumperPosition(jumper, keydownEvent:pygame.event.Event):
   global text
   keyPressed = {"talk":False, "right":False, "left":False, "jump":False}
   pressedKeys = pygame.key.get_pressed()
@@ -99,6 +106,7 @@ def updateJumperPosition(jumper, keydownEvent):
   jumper.experienceGravity()
   jumper.scrollScreen()
   jumper.winLevelIfTouchingGoal()
+  jumper.dieIfTouchingEnemy()
   jumper.dieIfTouchingBottom()
   jumper.drawJumper()
   sendAMessage({"action":"updatePlayer", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"], "position":(jumper.jumperXWithScroll, jumper.jumperY)}})
@@ -155,6 +163,6 @@ def drawPauseScreen(jumper):
     writeText("freesansbold.ttf", 50, "Leave", (0, 0, 0), (globalVariables["screenWidth"] / 2, (globalVariables["screenHeight"] / 2) + 137.5))
 
 def drawGameAndUpdateJumperPosition(jumper, keydownEvent):
-  drawGame(keydownEvent)
+  drawGame()
   updateJumperPosition(jumper, keydownEvent)
   drawPauseScreen(jumper)

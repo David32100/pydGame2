@@ -3,7 +3,7 @@ import pygame
 from globalVariables import globalVariables
 from game.collision import collisionCheck
 from game.levels import levels
-from game.obstacles import groundColor, goalColor
+from game.obstacles import groundColor, goalColor, enemyColor
 
 def checkIfTouchingColor(spriteX, spriteY, spriteWidth, spriteHeight, colorToCheckFor):
   for xPos in range(int(spriteX), int(spriteX + spriteWidth)):
@@ -17,7 +17,7 @@ class Jumper():
   def __init__(self):
     globalVariables["scroll"] = 0
     self.jumperColor = globalVariables["userSettings"]["playerColor"]
-    self.jumperX, self.jumperY = 300, 409
+    self.jumperX, self.jumperY = 0, 0
     self.jumperXWithScroll = self.jumperX + globalVariables["scroll"]
     self.jumperWidth, self.jumperHeight = 20, 40
     self.jumperHeadRadius = 10
@@ -143,7 +143,7 @@ class Jumper():
 
   def resetJumper(self):
     self.jumperColor = globalVariables["userSettings"]["playerColor"]
-    self.jumperX, self.jumperY = 300, 409
+    self.jumperX, self.jumperY = levels[globalVariables["currentLevel"]][3], levels[globalVariables["currentLevel"]][4]
     globalVariables["scroll"] = 0
     self.alive = True
     self.levelWon = False
@@ -169,5 +169,11 @@ class Jumper():
     text1Rect = text1.get_rect()
     text1Rect.center = (self.jumperX + (self.jumperWidth / 2), self.jumperY - (self.jumperHeadRadius * 2) - 28)
     globalVariables["screen"].blit(text1, text1Rect)
+
+  def dieIfTouchingEnemy(self):
+    if checkIfTouchingColor(self.jumperX, self.jumperY - (self.jumperHeadRadius * 2), self.jumperWidth, self.jumperHeight + (self.jumperHeadRadius * 2), enemyColor):
+      self.alive = False
+      self.canMove = False
+      self.jumperColor = (255, 0, 0)
     
 jumper = Jumper()
