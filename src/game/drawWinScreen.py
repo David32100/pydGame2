@@ -1,10 +1,10 @@
 import pygame
 
 from globalVariables import globalVariables
-from drawingFunctions import writeText, leaveLobby
+from drawingFunctions import writeText
 from homeScreen.joinGame import joinGame
 from game.levels import levels
-from client.communications import sendAMessage
+from client.communications import sendAMessage, leaveLobby
 
 def drawWinScreen(jumper):
   globalVariables["screen"].fill((127, 127, 0))

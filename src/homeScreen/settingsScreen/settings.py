@@ -3,8 +3,8 @@ import pygame
 from game.jumper import jumper
 from account.login import writeInTextBox
 from globalVariables import globalVariables
-from drawingFunctions import shutdownGame, writeText
-from client.communications import sendAMessage
+from drawingFunctions import writeText
+from client.communications import sendAMessage, shutdownGame
 from homeScreen.settingsScreen.generalSettings import drawVolumeScreen, drawReportScreen, drawCreditsScreen, drawResetSettingsScreen, drawDeleteSaveScreen, drawUninstallGameScreen
 from homeScreen.settingsScreen.playerSettings import drawPlayerColorScreen, drawAnonymousModeScreen, drawHideTextChatScreen
 from homeScreen.settingsScreen.accountSettings import drawAccountInfoScreen, drawChangeUsernameScreen, drawChangePasswordScreen, drawLogOutScreen, drawDeleteAccountScreen

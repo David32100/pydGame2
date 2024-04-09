@@ -1,8 +1,9 @@
 import pygame
 
 from globalVariables import globalVariables
-from drawingFunctions import writeText, leaveLobby
-
+from drawingFunctions import writeText
+from client.communications import leaveLobby
+ 
 def drawDeathScreen(jumper):
   globalVariables["screen"].fill((255, 0, 0))
   writeText("arialblack", 50, "Game Over", (0, 0, 0), (globalVariables["screenWidth"] / 2, (globalVariables["screenHeight"] / 2) - 50))

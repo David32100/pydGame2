@@ -2,9 +2,9 @@ import pygame
 
 from globalVariables import globalVariables
 from game.levels import levels
-from client.communications import sendAMessage
-from drawingFunctions import writeText, leaveLobby
-
+from client.communications import sendAMessage, leaveLobby
+from drawingFunctions import writeText
+ 
 sendJumpingMessage = False
 text = ""
 
@@ -19,15 +19,7 @@ def drawGame():
   globalVariables["screen"].fill((0, 128, 128))
   
   for object in levels[globalVariables["currentLevel"]][2]:
-    objectRect = levels[globalVariables["currentLevel"]][2][object]
-    objectX = objectRect[0]
-    objectX = objectRect[0] - globalVariables["scroll"]
-    changedObjectRect = [objectX]
-
-    for objectPeice in objectRect[1:]:
-      changedObjectRect.append(objectPeice)
-
-    object.draw(changedObjectRect)
+    object.draw(levels[globalVariables["currentLevel"]][2][object])
 
 def updateJumperPosition(jumper, keydownEvent:pygame.event.Event):
   global text

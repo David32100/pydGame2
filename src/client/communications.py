@@ -1,6 +1,7 @@
 import pygame
 import json
 import time
+import sys
 
 from client.gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
 from globalVariables import globalVariables
@@ -41,6 +42,29 @@ def receiveMessages():
     print("Failed to receive message:", e)
     return ({"actions":None}, None)
   
+def shutdownGame():
+  sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
+  
+  if globalVariables["party"] != None:
+    sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
+
+  globalVariables["status"] = "Offline"
+  sendAMessage({"action":"saveProgress", "contents":{"username":globalVariables["username"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
+  sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
+  sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
+  shutdownGameClient()
+  pygame.quit()
+  sys.exit()
+
+def leaveLobby(jumper):
+  globalVariables["veiwingHomeScreen"] = True
+  globalVariables["playingGame"] = False
+  jumper.resetJumper()
+  sendAMessage({"action":"leaveGame", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"]}})
+  globalVariables["lobby"] = None
+  globalVariables["status"] = "Not in game"
+  globalVariables["playersInLobby"] = {}
+  
 def receiveAndManageMessages():
   global globalVariables
 
@@ -74,9 +98,10 @@ def receiveAndManageMessages():
       globalVariables["veiwingHomeScreen"] = False
       globalVariables["playingGame"] = True
       globalVariables["lobby"] = messageReceived["contents"]["lobby"]
+      globalVariables["currentLevel"] = int(messageReceived["contents"]["lobby"].split("_")[1])
+      jumper.resetJumper()
       sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":None, "lobby":messageReceived["contents"]["lobby"]}})
       time.sleep(0.5)
-      globalVariables["currentLevel"] = int(messageReceived["contents"]["lobby"].split("_")[1])
       globalVariables["status"] = "In game"
     elif messageReceived["action"] == "startJump":
       globalVariables['jumping'] = True

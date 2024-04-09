@@ -1,7 +1,7 @@
 import pygame
 import sys
 
-from levelMakerObstacles import Ground, EndGoal, Enemy
+from levelMakerObstacles import Ground, EndGoal, Enemy, Text
 from levelMakerGlobalVariables import clock, level, levelLayout, screen
 from levelMakerDrawingFunctions import drawAlphaCircle, drawAlphaRect, writeText
 
@@ -10,6 +10,8 @@ lastPoint = []
 currentObstacle = None
 scroll = 0
 showSideBar = False
+typing = False
+text = ""
 
 def scrollScreen(scroll:int) -> int:
   pressedKeys = pygame.key.get_pressed()
@@ -21,11 +23,10 @@ def scrollScreen(scroll:int) -> int:
   if pressedKeys[pygame.K_RIGHT]:
     if scroll < level[1]:
       scroll += 1
-      print(scroll)
 
   return scroll
 
-def drawObjects():
+def drawObjects(scroll:int):
   for object in list(levelLayout.keys()):
     object.draw(levelLayout[object])
 
@@ -39,6 +40,12 @@ def drawObjects():
         drawAlphaCircle((0, 255, 0, 127), [lastPoint[1][0], lastPoint[1][1]], mouseY - lastPoint[1][1])
     elif currentObstacle == "Enemy":
       drawAlphaRect((255, 0, 255, 127), [lastPoint[1][0], lastPoint[1][1], mouseX + scroll - lastPoint[1][0], mouseY - lastPoint[1][1]])
+    elif currentObstacle == "Text":
+      textSize = pygame.font.Font("freesansbold.ttf", 30).size(text)
+      textWidth = int(textSize[0] / 1.45)
+
+      writeText("freesansbold.ttf", 30, text, (0, 0, 0), lastPoint[1])
+      pygame.draw.rect(screen, (0, 0, 0), (lastPoint[1][0] - (textWidth / 2) - 3, lastPoint[1][1] - (textSize[1] / 2) - 3, textWidth + 6, textSize[1] + 6), 3)
 
 def drawItemSelecter():
   # Draw background
@@ -47,6 +54,8 @@ def drawItemSelecter():
   pygame.draw.rect(screen, (125, 125, 0), (25, 525, 50, 50))
   pygame.draw.circle(screen, (0, 255, 0), (125, 550), 25)
   pygame.draw.rect(screen, (255, 0, 255), (175, 525, 50, 50))
+  pygame.draw.rect(screen, (0, 0, 4), (250, 525, 50, 50))
+  writeText("freesansbold.ttf", 25, "Text", (255, 255, 254), (275, 550))
 
   # Outline items if selected
   if currentObstacle == "Ground":
@@ -55,6 +64,8 @@ def drawItemSelecter():
     pygame.draw.circle(screen, (0, 0, 0), (125, 550), 28, 3)
   elif currentObstacle == "Enemy":
     pygame.draw.rect(screen, (0, 0, 0), (172, 522, 56, 56), 3)
+  elif currentObstacle == "Text":
+    pygame.draw.rect(screen, (0, 0, 0), (246, 521, 58, 58), 3)
 
   # Draw delete and settings buttons on top of selector
   pygame.draw.rect(screen, (255, 255, 255), (500, 500, 200, 100))
@@ -73,8 +84,8 @@ def drawSideBarRects():
 
 def drawSideBarText():
   writeText("freesansbold.ttf", 20, "Print level", (255, 255, 255), (650, 230))
-  writeText("freesansbold.ttf", 20, "Start position", (0, 0, 0), (650, 270))
-  writeText("freesansbold.ttf", 20, "(" + str(level[3]) + ", " + str(level[4]) + ")", (255, 255, 255), (650, 305))
+  writeText("freesansbold.ttf", 20, "Level width", (0, 0, 0), (650, 270))
+  writeText("freesansbold.ttf", 25, str(level[1]), (255, 255, 255), (650, 305))
 
 while True:
   clock.tick(60)
@@ -87,25 +98,47 @@ while True:
       sys.exit()
     if event.type == pygame.MOUSEBUTTONDOWN:
       checkMouse = True
+    if event.type == pygame.KEYDOWN and typing:
+      if event.key == pygame.K_BACKSPACE:
+        if len(text) > 0:
+          text = text.removesuffix(text[-1])
+      elif event.key == pygame.K_SPACE:
+        text += " "
+      elif len(pygame.key.name(event.key)) < 2:
+        text += event.unicode
 
   screen.fill((0, 255, 255))
   scroll = scrollScreen(scroll)
-  drawObjects()
+  drawObjects(scroll)
   drawItemSelecter()
     
   if showSideBar:
     drawSideBarRects()
 
   if checkMouse:
+    if typing:
+      if text != "":
+        levelLayout[lastPoint[0]] = ("freesansbold.ttf", 30, str(text), (0, 0, 0), lastPoint[1], 1, None)
+        
+      text = ""
+      typing = False
+
     screenColor = screen.get_at((mouseX, mouseY))
 
     if screenColor == (0, 0, 2, 255):
       levelLayoutToPrint = {}
+      i = 0
 
       for key in list(levelLayout.keys()):
-        levelLayoutToPrint[str(key).split(".")[1].split(" ")[0] + "()"] = levelLayout[key]
+        levelLayoutToPrint[str(key).split(".")[1].split(" ")[0] + "()" + str(i)] = levelLayout[key]
+        i += 1
 
       print("\nLevel: level =", level, "\nLevel Layout: levelLayout =", levelLayoutToPrint)
+    elif screenColor == (0, 0, 3, 255):
+      pass
+    elif screenColor == (0, 0, 4, 255) or screenColor == (255, 255, 254, 255):
+      currentObstacle = "Text"
+      lastPoint = []
     elif screenColor == (125, 125, 0, 255):
       currentObstacle = "Ground"
       lastPoint = []
@@ -122,7 +155,7 @@ while True:
       showSideBar = not showSideBar
       lastPoint = []
     elif screenColor != (255, 255, 255, 255):
-      if currentObstacle != None and currentObstacle != "Delete":
+      if currentObstacle != None and currentObstacle != "Delete" and currentObstacle != "Text":
         if lastPoint == []:
           lastPoint = [eval(currentObstacle)(), [mouseX + scroll, mouseY]]
         else:
@@ -148,15 +181,24 @@ while True:
 
             levelLayout[lastPoint[0]] = (lastPoint[1][0], lastPoint[1][1], width)
 
-          lastPoint = []
+          lastPoint = []  
       elif currentObstacle == "Delete":
         for obstacle in list(levelLayout.keys()):
           if str(obstacle).split(".")[1].split(" ")[0] == "EndGoal":
             if mouseX > levelLayout[obstacle][0] - levelLayout[obstacle][2] and mouseX < levelLayout[obstacle][0] + levelLayout[obstacle][2] and mouseY > levelLayout[obstacle][1] - levelLayout[obstacle][2] and mouseY < levelLayout[obstacle][1] + levelLayout[obstacle][2]:
               levelLayout.pop(obstacle)
+          elif str(obstacle).split(".")[1].split(" ")[0] == "Text":
+            textSize = pygame.font.Font(levelLayout[obstacle][0], levelLayout[obstacle][1]).size(levelLayout[obstacle][2])
+            
+            if mouseX > levelLayout[obstacle][4][0] - textSize[0] / 2 and mouseX < levelLayout[obstacle][4][0] + textSize[0] / 2 and mouseY > levelLayout[obstacle][4][1] - textSize[1] / 2 and mouseY < levelLayout[obstacle][4][1] + textSize[1] / 2:
+              levelLayout.pop(obstacle)
           else:
             if mouseX > levelLayout[obstacle][0] and mouseX < levelLayout[obstacle][0] + levelLayout[obstacle][2] and mouseY > levelLayout[obstacle][1] and mouseY < levelLayout[obstacle][1] + levelLayout[obstacle][3]:
               levelLayout.pop(obstacle)
+      elif currentObstacle == "Text":
+        typing = True
+        lastPoint = [eval(currentObstacle)(), [mouseX + scroll, mouseY]]
+
     else:
       lastPoint = []
       currentObstacle = None

@@ -2,8 +2,8 @@ import pygame
 import time
 
 from globalVariables import globalVariables
-from drawingFunctions import shutdownGame, writeText
-from client.communications import sendAMessage
+from drawingFunctions import writeText
+from client.communications import sendAMessage, shutdownGame
 
 boxColor = (0, 0, 255, 255)
 veiwingPlayer = None

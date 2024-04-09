@@ -2,8 +2,8 @@ import pygame
 
 from globalVariables import globalVariables
 from game.levels import levels
-from drawingFunctions import shutdownGame, writeText
-from client.communications import sendAMessage
+from drawingFunctions import writeText
+from client.communications import sendAMessage, shutdownGame
 
 boxColor = (0, 255, 0, 255)
 

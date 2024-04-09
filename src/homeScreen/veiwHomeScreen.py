@@ -2,8 +2,7 @@ import pygame
 
 from globalVariables import globalVariables
 from homeScreen.drawHomeScreen import drawHomeScreen
-from drawingFunctions import shutdownGame
-from client.communications import sendAMessage
+from client.communications import sendAMessage, shutdownGame
 
 def veiwHomeScreen():
   while globalVariables["veiwingHomeScreen"]:

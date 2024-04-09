@@ -5,9 +5,7 @@ from game.drawGame import drawGameAndUpdateJumperPosition
 from game.drawWinScreen import drawWinScreen
 from globalVariables import globalVariables
 from game.jumper import jumper
-from drawingFunctions import shutdownGame
-from drawingFunctions import leaveLobby
-from client.communications import sendAMessage
+from client.communications import sendAMessage, shutdownGame, leaveLobby
 
 def playGame():
   while globalVariables["playingGame"]:

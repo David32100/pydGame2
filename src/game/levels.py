@@ -1,7 +1,8 @@
-from game.obstacles import Ground, EndGoal, Enemy
+from game.obstacles import Ground, EndGoal, Enemy, Text
 
 # Level width includes max scroll plus screen width
 level10Layout = {
+  Text(): ["freesansbold.ttf", 30, "Hi", (0, 0, 0), [100, 100], 1, None],
   Ground(): [0, 450, 350, 50],
   Ground(): [0, 260, 700, 20],
   Ground(): [0, 200, 200, 60],
@@ -10,16 +11,6 @@ level10Layout = {
   Ground(): [800, 450, 4900, 50],
   Ground(): [1000, 250, 100, 25],
   EndGoal(): [5600, 50, 20]
-}
-
-level11Layout = {
-  Ground(): [134, 180, 115, 40],
-  Ground(): [465, 246, 0, 0],
-  Ground(): [270, 232, 103, 32],
-  Enemy(): [302, 202, 43, 40],
-  Enemy(): [409, 270, 59, 59],
-  Ground(): [516, 340, 161, 96], 
-  EndGoal(): [592, 293, 34]
 }
 
 level0Layout = {}
@@ -32,6 +23,15 @@ level6Layout = {}
 level7Layout = {}
 level8Layout = {}
 level9Layout = {}
+
+level11Layout = {
+  Ground(): [134, 180, 115, 40],
+  Enemy(): [302, 202, 43, 40],
+  Ground(): [270, 232, 103, 32],
+  Enemy(): [409, 270, 59, 59],
+  Ground(): [516, 340, 161, 96], 
+  EndGoal(): [592, 293, 34]
+}
 
 level0 = [0, 5000, level0Layout, 100, 100]
 level1 = [1, 5000, level1Layout, 100, 100]
