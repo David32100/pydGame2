@@ -64,6 +64,7 @@ def leaveLobby(jumper):
   globalVariables["lobby"] = None
   globalVariables["status"] = "Not in game"
   globalVariables["playersInLobby"] = {}
+  globalVariables["timers"] = {}
   
 def receiveAndManageMessages():
   global globalVariables
