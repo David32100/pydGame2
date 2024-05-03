@@ -70,7 +70,11 @@ def receiveAndManageMessages():
   global globalVariables
 
   while True:
-    messageReceived, addressReceived = receiveMessages()
+    try:
+      messageReceived, addressReceived = receiveMessages()
+    except json.decoder.JSONDecodeError:
+      print("JSON decoder error: src/client/communications.py Ln 76 in receiveAndManageMessage")
+      break
 
     if messageReceived["action"] == "joinedLobby":
       globalVariables["lobby"] = messageReceived["contents"]["lobby"]
@@ -81,6 +85,10 @@ def receiveAndManageMessages():
         globalVariables["playersInLobby"][messageReceived["contents"]["username"]] = OtherJumpers(messageReceived["contents"]["position"][0], messageReceived["contents"]["position"][1], messageReceived["contents"]["username"])
     elif messageReceived["action"] == "deletePlayer":
       globalVariables["playersInLobby"].pop(messageReceived["contents"]["username"])
+
+      if str(messageReceived["contents"]["username"]) + "'sTalkingTimer" in globalVariables["timers"]:
+        globalVariables["timers"].pop(str(messageReceived["contents"]["username"]) + "'sTalkingTimer")
+        
     elif messageReceived["action"] == "updatePlayerStatus":
       if "currentLevel" in messageReceived["contents"]:
         globalVariables["playersInParty"][messageReceived["contents"]["username"]][3] = messageReceived["contents"]["currentLevel"]

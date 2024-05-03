@@ -1,4 +1,5 @@
-# Level loader: Put levelLayout value in JSON format into levelLoader.JSON in a list with each key having one character in front of it, then put level in JSON format in the list, finally click load level in program.
+# Level loader: Put level and levelLayout in a list, in that order, each key in levelLayout must have one character in front of it, then click load level
+# Print level: Click print level, level will be in level.JSON, NOTE: Level must be changed before it's put into game
 import pygame
 import sys
 import json
@@ -113,7 +114,7 @@ def drawItemSelecter():
   pygame.draw.line(screen, (0, 0, 0), (550, 510), (550, 590))
   pygame.draw.circle(screen, (127, 127, 127), (660, 550), 25)
   writeText("freesansbold.ttf", 20, "Max jump height:", (0, 0, 0), (430, 515))
-  writeText("freesansbold.ttf", 20, "7 boxes", (0, 0, 0), (430, 530))
+  writeText("freesansbold.ttf", 20, "6-9 boxes", (0, 0, 0), (430, 530))
   writeText("freesansbold.ttf", 20, "Scroll:", (0, 0, 0), (430, 555))
   writeText("freesansbold.ttf", 20, str(-scroll), (0, 0, 0), (430, 570))
   writeText("freesansbold.ttf", 25, "Player", (0, 0, 0), (520, 515))
@@ -224,7 +225,10 @@ while True:
         levelLayoutToPrint[str(key).split(".")[1].split(" ")[0] + "()" + str(i)] = levelLayout[key]
         i += 1
 
-      print("\nLevel: level =", level, "\nLevel Layout: levelLayout =", levelLayoutToPrint)
+      with open("levelMaker/level.JSON", "w") as writeFile:
+        writeFile.truncate(0)
+        writeFile.write(json.dumps([level, levelLayoutToPrint]))
+
     elif screenColor == (0, 0, 3, 255):
       changingWidth = True
     elif screenColor == (0, 2, 0, 255):
@@ -232,14 +236,16 @@ while True:
     elif screenColor == (0, 3, 0, 255):
       changingY = True
     elif screenColor == (0, 4, 0, 255):
+      savedLevel = level
+      savedLevelLayout = levelLayout
       try:
         with open("levelMaker/levelLoader.JSON", "r") as readFile:
           levelInfo = json.loads(readFile.read())
-          level = levelInfo[1]
+          level = levelInfo[0]
           levelLayout = {}
           
-          for object in list(levelInfo[0].keys()):
-            levelLayout[eval(object[:-1])] = levelInfo[0][object]
+          for object in list(levelInfo[1].keys()):
+            levelLayout[eval(object[:-1])] = levelInfo[1][object]
 
         lastPoint = []
         currentObstacle = None
@@ -253,7 +259,11 @@ while True:
         changingY = False
         spawnY = str(level[4])
       except:
-        print("Failed to load level.")
+        level = savedLevel
+        levelLayout = savedLevelLayout
+
+        with open("levelMaker/levelLoader.JSON", "a") as writeFile:
+          writeFile.write('\n"Failed to load level!"')
     elif screenColor == (0, 0, 4, 255) or screenColor == (255, 255, 254, 255):
       currentObstacle = "Text"
       lastPoint = []
@@ -303,15 +313,15 @@ while True:
       elif currentObstacle == "Delete":
         for obstacle in list(levelLayout.keys()):
           if str(obstacle).split(".")[1].split(" ")[0] == "EndGoal":
-            if mouseX > levelLayout[obstacle][0] - levelLayout[obstacle][2] and mouseX < levelLayout[obstacle][0] + levelLayout[obstacle][2] and mouseY > levelLayout[obstacle][1] - levelLayout[obstacle][2] and mouseY < levelLayout[obstacle][1] + levelLayout[obstacle][2]:
+            if mouseX - scroll > levelLayout[obstacle][0] - levelLayout[obstacle][2] and mouseX - scroll < levelLayout[obstacle][0] + levelLayout[obstacle][2] and mouseY > levelLayout[obstacle][1] - levelLayout[obstacle][2] and mouseY < levelLayout[obstacle][1] + levelLayout[obstacle][2]:
               levelLayout.pop(obstacle)
           elif str(obstacle).split(".")[1].split(" ")[0] == "Text":
             textSize = pygame.font.Font(levelLayout[obstacle][0], levelLayout[obstacle][1]).size(levelLayout[obstacle][2])
             
-            if mouseX > levelLayout[obstacle][4][0] - textSize[0] / 2 and mouseX < levelLayout[obstacle][4][0] + textSize[0] / 2 and mouseY > levelLayout[obstacle][4][1] - textSize[1] / 2 and mouseY < levelLayout[obstacle][4][1] + textSize[1] / 2:
+            if mouseX - scroll > levelLayout[obstacle][4][0] - textSize[0] / 2 and mouseX - scroll < levelLayout[obstacle][4][0] + textSize[0] / 2 and mouseY > levelLayout[obstacle][4][1] - textSize[1] / 2 and mouseY < levelLayout[obstacle][4][1] + textSize[1] / 2:
               levelLayout.pop(obstacle)
           else:
-            if mouseX > levelLayout[obstacle][0] and mouseX < levelLayout[obstacle][0] + levelLayout[obstacle][2] and mouseY > levelLayout[obstacle][1] and mouseY < levelLayout[obstacle][1] + levelLayout[obstacle][3]:
+            if mouseX - scroll > levelLayout[obstacle][0] and mouseX - scroll < levelLayout[obstacle][0] + levelLayout[obstacle][2] and mouseY > levelLayout[obstacle][1] and mouseY < levelLayout[obstacle][1] + levelLayout[obstacle][3]:
               levelLayout.pop(obstacle)
       elif currentObstacle == "Text":
         typing = True

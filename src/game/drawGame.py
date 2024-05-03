@@ -7,6 +7,9 @@ from drawingFunctions import writeText
  
 sendJumpingMessage = False
 text = ""
+moveLeftSpeed = 0.5
+moveRightSpeed = 0.5
+jumpHeight = 0.8
 
 def drawAlphaRect(color:tuple, opacity:int, width:float, height:float, position:tuple) -> pygame.Surface:
   alphaRect = pygame.Surface((width, height))
@@ -22,9 +25,10 @@ def drawGame():
     object.draw(levels[globalVariables["currentLevel"]][2][object])
 
 def updateJumperPosition(jumper, keydownEvent:pygame.event.Event):
-  global text
+  global text, moveLeftSpeed, moveRightSpeed, jumpHeight
   keyPressed = {"talk":False, "right":False, "left":False, "jump":False}
   pressedKeys = pygame.key.get_pressed()
+  keyMods = pygame.key.get_mods()
 
   for keygroup in globalVariables["userSettings"]["controls"]:
     for key in globalVariables["userSettings"]["controls"][keygroup]:
@@ -32,31 +36,45 @@ def updateJumperPosition(jumper, keydownEvent:pygame.event.Event):
         keyPressed[keygroup] = True
 
   if globalVariables["jumping"]:
-    jumper.jump()
+    jumper.jump(1)
 
     if not keyPressed["left"] and not keyPressed["right"]:
       jumper.xVelocity = 0
-      jumper.moveRight()
+      jumper.moveRight(1)
   else:
     if keyPressed["jump"]:
       if jumper.canMove:
         sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
-  
-      jumper.jump()
+      
+      if keyMods & pygame.KMOD_SHIFT and jumper.checkJumperCollision(yDisplacement=1)["Bottom"]:
+        jumpHeight = 1
+      elif not keyMods & pygame.KMOD_SHIFT and jumper.checkJumperCollision(yDisplacement=1)["Bottom"]:
+        jumpHeight = 0.8
+
+      jumper.jump(jumpHeight)
 
       if not keyPressed["left"] and not keyPressed["right"]:
         jumper.xVelocity = 0
-        jumper.moveRight()
-
-    if not keyPressed["jump"]:
+        jumper.moveRight(1)
+    else:
       jumper.stopJumping()
       sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
 
   if keyPressed["left"]:
-    jumper.moveLeft()
+    if keyMods & pygame.KMOD_SHIFT and jumper.checkJumperCollision(yDisplacement=1)["Bottom"]:
+      moveLeftSpeed = 1
+    elif not keyMods & pygame.KMOD_SHIFT and jumper.checkJumperCollision(yDisplacement=1)["Bottom"]:
+      moveLeftSpeed = 0.5
+
+    jumper.moveLeft(moveLeftSpeed)
 
   if keyPressed["right"]:
-    jumper.moveRight()
+    if keyMods & pygame.KMOD_SHIFT and jumper.checkJumperCollision(yDisplacement=1)["Bottom"]:
+      moveRightSpeed = 1
+    elif not keyMods & pygame.KMOD_SHIFT and jumper.checkJumperCollision(yDisplacement=1)["Bottom"]:
+      moveRightSpeed = 0.5
+
+    jumper.moveRight(moveRightSpeed)
 
   if not keyPressed["left"] and not keyPressed["right"]:
     jumper.slowDownIfNotMoving()
@@ -105,20 +123,22 @@ def updateJumperPosition(jumper, keydownEvent:pygame.event.Event):
 
   for otherJumper in list(globalVariables["playersInLobby"].values()):
     otherJumper.drawJumper()
-  
-  for timer in list(globalVariables["timers"].keys()):
-    if globalVariables["timers"][timer][0] < 5 * globalVariables["fps"]:
-      if timer.split("'")[0] in globalVariables["playersInLobby"] and not globalVariables["userSettings"]["hideTextChat"]:
-        globalVariables["playersInLobby"][timer.split("'")[0]].talk(globalVariables["timers"][timer][1])
-      elif timer.split("'")[0] == globalVariables["username"]:
-        if not jumper.talking:
-          jumper.talk(globalVariables["timers"][timer][1])
+
+  if not globalVariables["userSettings"]["hideTextChat"]:
+    for timer in list(globalVariables["timers"].keys()):
+      if globalVariables["timers"][timer][0] < 5 * globalVariables["fps"]:
+        if timer[:-14] in globalVariables["playersInLobby"]:
+          globalVariables["playersInLobby"][timer[:-14]].talk(globalVariables["timers"][timer][1])
+        elif timer[:-14] == globalVariables["username"]:
+          if not jumper.talking:
+            jumper.talk(globalVariables["timers"][timer][1])
+        else:
+          print("Error: Player with timer", timer, "is not in the lobby.")
+          globalVariables["timers"].pop(timer)
+
+        globalVariables["timers"][timer][0] += 1
       else:
         globalVariables["timers"].pop(timer)
-
-      globalVariables["timers"][timer][0] += 1
-    else:
-      globalVariables["timers"].pop(timer)
 
 def drawPauseScreen(jumper):
   if not jumper.veiwingPauseScreen:

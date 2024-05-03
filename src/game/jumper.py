@@ -46,35 +46,43 @@ class Jumper():
     pygame.draw.rect(globalVariables["screen"], self.jumperColor, jumperBody)
     pygame.draw.circle(globalVariables["screen"], self.jumperColor, jumperHead, self.jumperHeadRadius)
 
-  def moveLeft(self):
+  def moveLeft(self, speed:float):
     if self.canMove:
       if not self.checkJumperCollision(xDisplacement=self.xVelocity)["Left"] and (self.jumperX + self.xVelocity) > 0:
         if self.xVelocity > 0:
           if not self.checkJumperCollision(xDisplacement=self.xVelocity)["Right"] and (self.jumperX + self.jumperWidth + self.xVelocity) < globalVariables["screenWidth"]:
             self.jumperX += self.xVelocity
+          else:
+            self.xVelocity = 0
         else:
           self.jumperX += self.xVelocity
 
         self.jumperXWithScroll = self.jumperX + globalVariables["scroll"]
 
-        if self.xVelocity > -4:
-          self.xVelocity -= 1
+        if self.xVelocity > -4 * speed:
+          self.xVelocity -= speed
+        else:
+          self.xVelocity = -4 * speed
       else:
         self.xVelocity = 0
 
-  def moveRight(self):
+  def moveRight(self, speed:float):
     if self.canMove:
       if not self.checkJumperCollision(xDisplacement=self.xVelocity)["Right"] and (self.jumperX + self.jumperWidth + self.xVelocity) < globalVariables["screenWidth"]:
         if self.xVelocity < 0:
           if not self.checkJumperCollision(xDisplacement=self.xVelocity)["Left"] and (self.jumperX + self.xVelocity) > 0:
             self.jumperX += self.xVelocity
+          else:
+            self.xVelocity = 0
         else:
           self.jumperX += self.xVelocity
 
         self.jumperXWithScroll = self.jumperX + globalVariables["scroll"]
 
-        if self.xVelocity < 4:
-          self.xVelocity += 1
+        if self.xVelocity < 4 * speed:
+          self.xVelocity += speed
+        else:
+          self.xVelocity = 4 * speed
       else:
         self.xVelocity = 0
 
@@ -94,7 +102,7 @@ class Jumper():
       else:
         self.yVelocity = 0
 
-  def jump(self):
+  def jump(self, height:float, speed:float=1):
     if self.canMove:
       if not self.canJump:
         if self.checkJumperCollision(yDisplacement=1)["Bottom"]:
@@ -105,8 +113,8 @@ class Jumper():
         self.yVelocity = 0
 
       if self.canJump:
-        if self.jumpTimer < 20:
-          self.yVelocity -= 0.9
+        if self.jumpTimer < 20 * height:
+          self.yVelocity -= speed
           self.jumpTimer += 1
         else:
           self.canJump = False

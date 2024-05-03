@@ -1,19 +1,21 @@
 from game.obstacles import Ground, EndGoal, Enemy, Text
 
-# Level width includes max scroll plus screen width
-level10Layout = {
-  Text(): ["freesansbold.ttf", 30, "Hi", (0, 0, 0), [100, 100], 1, None],
-  Ground(): [0, 450, 350, 50],
-  Ground(): [0, 260, 700, 20],
-  Ground(): [0, 200, 200, 60],
-  Ground(): [250, 90, 5450, 20],
-  Ground(): [450, 370, 350, 150],
-  Ground(): [800, 450, 4900, 50],
-  Ground(): [1000, 250, 100, 25],
-  EndGoal(): [5600, 50, 20]
+level0Layout = {
+  Ground(): [0, 400, 1261, 100], 
+  Text(): ["freesansbold.ttf", 30, "Welcome to the tutorial!", [0, 0, 0], [149, 126], 1, None], 
+  Text(): ["freesansbold.ttf", 30, "Use the arrow keys to move!", [0, 0, 0], [149, 168], 1, None], 
+  Ground(): [620, 324, 59, 78], 
+  Text(): ["freesansbold.ttf", 30, "Use the space key to jump!", [0, 0, 0], [648, 169], 1, None], 
+  Enemy(): [1241, 360, 30, 40], 
+  Text(): ["freesansbold.ttf", 30, "Avoid the pink!", [0, 0, 0], [1269, 227], 1, None], 
+  Ground(): [1800, 262, 39, 136], 
+  Ground(): [1800, 400, 36, 10], 
+  Text(): ["freesansbold.ttf", 30, "Hold shift to move faster!", [0, 0, 0], [1822, 176], 1, None], 
+  Ground(): [1261, 401, 1437, 98], 
+  Text(): ["freesansbold.ttf", 30, "Touch the goal to win the level!", [0, 0, 0], [2526, 228], 1, None],
+  EndGoal(): [2630, 347, 39]
 }
 
-level0Layout = {}
 level1Layout = {}
 level2Layout = {}
 level3Layout = {}
@@ -51,6 +53,18 @@ level9Layout = {
   Ground(): [543, 241, 15, 218]
 }
 
+level10Layout = {
+  Text(): ["freesansbold.ttf", 30, "Test level!", (0, 0, 0), [100, 100], 1, None],
+  Ground(): [0, 450, 350, 50],
+  Ground(): [0, 260, 700, 20],
+  Ground(): [0, 200, 200, 60],
+  Ground(): [250, 90, 5450, 20],
+  Ground(): [450, 370, 350, 150],
+  Ground(): [800, 450, 4900, 50],
+  Ground(): [1000, 250, 100, 25],
+  EndGoal(): [5600, 50, 20]
+}
+
 level11Layout = {
   Ground(): [134, 180, 115, 40],
   Enemy(): [302, 202, 43, 40],
@@ -60,7 +74,7 @@ level11Layout = {
   EndGoal(): [592, 293, 34]
 }
 
-level0 = [0, 5000, level0Layout, 100, 100]
+level0 = [0, 2000, level0Layout, 80, 350]
 level1 = [1, 5000, level1Layout, 100, 100]
 level2 = [2, 5000, level2Layout, 100, 100]
 level3 = [3, 5000, level3Layout, 100, 100]

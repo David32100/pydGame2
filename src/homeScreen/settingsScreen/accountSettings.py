@@ -98,6 +98,7 @@ def drawLogOutScreen(checkMouse):
 
     if globalVariables["party"] != None:
       sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
+      globalVariables["party"] = None
 
     globalVariables["status"] = "Offline"
     sendAMessage({"action":"saveProgress", "contents":{"username":globalVariables["username"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
