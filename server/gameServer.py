@@ -78,7 +78,9 @@ def runServer(server: socket.socket):
 
     elif messageReceived["action"] == "login":
       if messageReceived["contents"]["username"] in playerAccounts:
-        if playerAccounts[messageReceived["contents"]["username"]]["loggedIn"]:
+        if playerAccounts[messageReceived["contents"]["username"]]["banned"] != False:
+          sendMessage(server, {"action":"loginFailed", "contents":{"error":"Banned: " + playerAccounts[messageReceived["contents"]["username"]]["banned"]}}, addressReceived)
+        elif playerAccounts[messageReceived["contents"]["username"]]["loggedIn"]:
           sendMessage(server, {"action":"loginFailed", "contents":{"error":"User already logged in"}}, addressReceived)
         else:
           try:
@@ -93,10 +95,14 @@ def runServer(server: socket.socket):
           if passwordMatches:
             sendMessage(server, {"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, addressReceived)
             playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = True
-    
+          else:
+            sendMessage(server, {"action":"loginFailed", "contents":{"error":"Username or password is incorrect"}}, addressReceived)
+      else:
+        sendMessage(server, {"action":"loginFailed", "contents":{"error":"Username or password is incorrect"}}, addressReceived)
+
     elif messageReceived["action"] == "signUp":
       if not messageReceived["contents"]["username"] in playerAccounts:
-        playerAccounts[messageReceived["contents"]["username"]] = {"loggedIn": True, "username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0, "settings":{"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}}}
+        playerAccounts[messageReceived["contents"]["username"]] = {"banned": False, "loggedIn": True, "username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0, "settings":{"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}}}
         sendMessage(server, {"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, addressReceived)
         saveAccounts()
 

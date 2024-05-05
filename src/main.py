@@ -1,4 +1,4 @@
-# To do: Fix leaving game while in party (Logout button), Do everything else needed to do, Add SFX and music, Add graphics and transitions, Polish game, Final step: Setup and share the new game!!!
+# To do: Make error messages for change username and password, Make game title and update report and credits, Make more obstacles and levels, Add SFX and music, Add graphics and transitions, Polish game, Make a copy of game and make uninstall game work on copy, Final step: Setup and share the new game!!!
 import pygame
 import threading
 

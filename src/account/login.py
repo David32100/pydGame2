@@ -4,7 +4,7 @@ import time
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import shutdownGameClient, sendAMessage, loginFailed
+from client.communications import shutdownGameClient, sendAMessage, loginFailed, condition
 
 backspaceKeyPressed = False
 
@@ -77,14 +77,17 @@ def login():
         break
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
         sendAMessage({"action":"login", "contents":{"username":username, "password":password}})
-        time.sleep(1)
+        condition.acquire()
+        condition.wait(1.5)
 
         if globalVariables["username"] != None:
           globalVariables["veiwingHomeScreen"] = True
           break
         else:
-          error = "Username or password is incorrect."
+          from client.communications import loginFailed
+          error = loginFailed
 
+        condition.release()
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 255, 255):
         currentTextBox = "username"
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 254, 255):
@@ -93,9 +96,6 @@ def login():
         currentTextBox = None
 
       checkMouse = False
-
-    if loginFailed:
-      error = "Already signed in to account."
 
     hiddenPassword = ""
 

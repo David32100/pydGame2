@@ -14,7 +14,7 @@ def drawAccountInfoScreen():
   writeText("freesansbold.ttf", 30, "Your password is kept safe.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 275))
   writeText("freesansbold.ttf", 30, "Hackers can't access your", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 300))
   writeText("freesansbold.ttf", 30, "password and even if they do,", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 325))
-  writeText("freesansbold.ttf", 30, "it is hashed and salted, so they", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 350))
+  writeText("freesansbold.ttf", 30, "it is encrypted, so they", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 350))
   writeText("freesansbold.ttf", 30, "don't get your actual password.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 375))
 
 def drawChangeUsernameScreen(checkMouse, password, newUsername, currentTextBox):

@@ -3,7 +3,7 @@ import sys
 import time
 import argon2
 
-from client.communications import shutdownGameClient, sendAMessage
+from client.communications import shutdownGameClient, sendAMessage, condition
 from account.login import writeInTextBox
 from globalVariables import globalVariables
 from drawingFunctions import writeText
@@ -50,13 +50,16 @@ def signUp():
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
         if password == reenteredPassword:
           sendAMessage({"action":"signUp", "contents":{"username":username, "password":argon2.PasswordHasher().hash(password)}})
-          time.sleep(1)
+          condition.acquire()
+          condition.wait(1.5)
 
           if globalVariables["username"] != None:
             globalVariables["veiwingHomeScreen"] = True
             break
           else:
             errorMessage = "Account already exists."
+          
+          condition.release()
         else:
           errorMessage = "Password doesn't match re-entered password."
 

@@ -2,6 +2,7 @@ import pygame
 import json
 import time
 import sys
+import threading
 
 from client.gameClient import createUdpClient, sendMessage, shutDownClient, receiveMessage
 from globalVariables import globalVariables
@@ -10,7 +11,8 @@ from game.otherJumpers import OtherJumpers
 
 client = None
 host, port = "127.0.0.1", 36848
-loginFailed = False
+loginFailed = ""
+condition = threading.Condition()
 
 def createGameClient():
   global client
@@ -67,7 +69,7 @@ def leaveLobby(jumper):
   globalVariables["timers"] = {}
   
 def receiveAndManageMessages():
-  global globalVariables
+  global globalVariables, loginFailed
 
   while True:
     try:
@@ -119,6 +121,10 @@ def receiveAndManageMessages():
     elif messageReceived["action"] == "talk":
       globalVariables["timers"][str(messageReceived["contents"]["username"]) + "'sTalkingTimer"] = [0, messageReceived["contents"]["text"]]
     elif messageReceived["action"] == "loggedIn":
+      condition.acquire()
+      condition.notify_all()
+      condition.release()
+      loginFailed = ""
       globalVariables["username"] = messageReceived["contents"]["accountInformation"]["username"]
       globalVariables["shownUsername"] = globalVariables["username"]
       globalVariables["loggingIn"] = False
@@ -126,7 +132,10 @@ def receiveAndManageMessages():
       globalVariables["discoveredLevels"] = messageReceived["contents"]["accountInformation"]["discoveredLevels"]
       globalVariables["userSettings"] = messageReceived["contents"]["accountInformation"]["settings"]
     elif messageReceived["action"] == "loginFailed":
-      loginFailed = True
+      condition.acquire()
+      loginFailed = messageReceived["contents"]["error"]
+      condition.notify_all()
+      condition.release()
     elif messageReceived["action"] == "leaveServer":
       globalVariables = {
         "clock": globalVariables["clock"],

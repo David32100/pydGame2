@@ -27,7 +27,7 @@ def drawVolumeScreen(checkMouse, newUserSettings):
   writeText("freesansbold.ttf", 30, "-", (255, 255, 255), ((globalVariables["screenWidth"] * (3 / 4)) - 86, 275))
 
 def drawReportScreen():
-  writeText("freesansbold.ttf", 35, "Reoprt", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
+  writeText("freesansbold.ttf", 35, "Report", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
   writeText("freesansbold.ttf", 30, "To report a bug or player,", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
   writeText("freesansbold.ttf", 30, "send an email to:", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 175))
   writeText("freesansbold.ttf", 30, "david.gross@rkyhs.org", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 205))
