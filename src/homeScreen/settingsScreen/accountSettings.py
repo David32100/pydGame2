@@ -2,7 +2,10 @@ import pygame
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import sendAMessage
+from client.communications import sendAMessage, changePasswordFailed, changeUsernameFailed, condition
+
+usernameError = ""
+passwordError = ""
 
 def drawAccountInfoScreen():
   writeText("freesansbold.ttf", 35, "Account Information", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
@@ -18,13 +21,15 @@ def drawAccountInfoScreen():
   writeText("freesansbold.ttf", 30, "don't get your actual password.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 375))
 
 def drawChangeUsernameScreen(checkMouse, password, newUsername, currentTextBox):
+  global usernameError
   writeText("freesansbold.ttf", 35, "Change Username", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
   writeText("freesansbold.ttf", 30, "Change your username.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 125))
-  writeText("freesansbold.ttf", 30, "This can't be undone!", (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
-  pygame.draw.rect(globalVariables["screen"], (255, 255, 254), ((globalVariables["screenWidth"] * (3 / 4)) - 35, 185, 180, 35))
-  pygame.draw.rect(globalVariables["screen"], (255, 255, 253), ((globalVariables["screenWidth"] * (3 / 4)) - 35, 260, 180, 35))
-  pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 36, 184, 182, 37), 1)
-  pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 36, 259, 182, 37), 1)
+  writeText("freesansbold.ttf", 30, "You can't be in a party.", (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
+  writeText("freesansbold.ttf", 30, "This can't be undone!", (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 175))
+  pygame.draw.rect(globalVariables["screen"], (255, 255, 254), ((globalVariables["screenWidth"] * (3 / 4)) - 35, 200, 180, 35))
+  pygame.draw.rect(globalVariables["screen"], (255, 255, 253), ((globalVariables["screenWidth"] * (3 / 4)) - 35, 270, 180, 35))
+  pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 36, 200, 182, 37), 1)
+  pygame.draw.rect(globalVariables["screen"], (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 36, 270, 182, 37), 1)
   pygame.draw.rect(globalVariables["screen"], (1, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 50, 325, 100, 50))
   
   if checkMouse:
@@ -35,10 +40,11 @@ def drawChangeUsernameScreen(checkMouse, password, newUsername, currentTextBox):
   for letter in password:
     hiddenPassword += "*"
 
-  writeText("freesansbold.ttf", 25, str(hiddenPassword), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 55, 205))
-  writeText("freesansbold.ttf", 25, str(newUsername), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 55, 275))
-  writeText("freesansbold.ttf", 25, "Password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 200))
-  writeText("freesansbold.ttf", 25, "New username:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 275))
+  writeText("freesansbold.ttf", 25, str(hiddenPassword), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 55, 222))
+  writeText("freesansbold.ttf", 25, str(newUsername), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 55, 290))
+  writeText("freesansbold.ttf", 25, "Password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 215))
+  writeText("freesansbold.ttf", 25, "New username:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 285))
+  writeText("freesansbold.ttf", 25, str(usernameError), (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 253))
   writeText("freesansbold.ttf", 30, "Change", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 350))
 
   if checkMouse:
@@ -49,13 +55,26 @@ def drawChangeUsernameScreen(checkMouse, password, newUsername, currentTextBox):
     elif screenColor == (1, 0, 0, 255):
       if globalVariables["party"] == None:
         sendAMessage({"action":"changeUsername", "contents":{"password":password, "newUsername":newUsername, "username":globalVariables["username"]}})
-        return None
+        condition.acquire()
+        condition.wait(1.5)
+
+        if globalVariables["username"] == newUsername:
+          condition.release()
+          return None
+        else:
+          from client.communications import changeUsernameFailed
+          usernameError = changeUsernameFailed
+
+        condition.release()
+      else:
+        usernameError = "Please leave the party you're in"
     else:
       return ""
     
   return currentTextBox
 
 def drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBox):
+  global passwordError, changePasswordFailed
   writeText("freesansbold.ttf", 35, "Change password", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
   writeText("freesansbold.ttf", 30, "Change your password.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 125))
   writeText("freesansbold.ttf", 30, "This can't be undone!", (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
@@ -72,6 +91,7 @@ def drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBo
   writeText("freesansbold.ttf", 20, str(newPassword), (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) + 65, 275))
   writeText("freesansbold.ttf", 25, "Old password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 200))
   writeText("freesansbold.ttf", 25, "New password:", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 105, 275))
+  writeText("freesansbold.ttf", 25, str(passwordError), (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 237))
   writeText("freesansbold.ttf", 30, "Change", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 350))
   
   if checkMouse:
@@ -80,8 +100,21 @@ def drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBo
     elif screenColor == (255, 255, 253, 255):
       return "newPassword"
     elif screenColor == (1, 0, 0, 255):
-      sendAMessage({"action":"changePassword", "contents":{"oldPassword":oldPassword, "newPassword":newPassword, "username":globalVariables["username"]}})
-      return None
+      if len(newPassword) > 0:
+        sendAMessage({"action":"changePassword", "contents":{"oldPassword":oldPassword, "newPassword":newPassword, "username":globalVariables["username"]}})
+        condition.acquire()
+        condition.wait(1.5)
+        from client.communications import changePasswordFailed
+
+        if changePasswordFailed == "":
+          condition.release()
+          return None
+        else:
+          passwordError = changePasswordFailed
+
+        condition.release()
+      else:
+        passwordError = "Password is too short"
     else:
       return ""
 

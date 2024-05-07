@@ -58,11 +58,10 @@ def settings():
 
     pressedKeys = pygame.key.get_pressed()
 
-    if currentTextBox != "email":
-      if pressedKeys[pygame.K_UP] and scroll < 0:
-        scroll += 1
-      elif pressedKeys[pygame.K_DOWN] and scroll > -maxScroll: 
-        scroll -= 1
+    if pressedKeys[pygame.K_UP] and scroll < 0:
+      scroll += 1
+    elif pressedKeys[pygame.K_DOWN] and scroll > -maxScroll: 
+      scroll -= 1
 
     if checkMouse:
       mouseX, mouseY = pygame.mouse.get_pos()

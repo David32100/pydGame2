@@ -12,6 +12,8 @@ from game.otherJumpers import OtherJumpers
 client = None
 host, port = "127.0.0.1", 36848
 loginFailed = ""
+changeUsernameFailed = ""
+changePasswordFailed = ""
 condition = threading.Condition()
 
 def createGameClient():
@@ -69,7 +71,7 @@ def leaveLobby(jumper):
   globalVariables["timers"] = {}
   
 def receiveAndManageMessages():
-  global globalVariables, loginFailed
+  global globalVariables, loginFailed, changePasswordFailed, changeUsernameFailed
 
   while True:
     try:
@@ -163,5 +165,22 @@ def receiveAndManageMessages():
     elif messageReceived["action"] == "usernameChanged":
       globalVariables["username"] = messageReceived["contents"]["newUsername"]
       globalVariables["shownUsername"] = globalVariables["username"]
+      condition.acquire()
+      condition.notify_all()
+      condition.release()
+    elif messageReceived["action"] == "usernameChangeFailed":
+      condition.acquire()
+      changeUsernameFailed = messageReceived["contents"]["error"]
+      condition.notify_all()
+      condition.release()
+    elif messageReceived["action"] == "passwordChanged":
+      condition.acquire()
+      condition.notify_all()
+      condition.release()
+    elif messageReceived["action"] == "passwordChangeFailed":
+      condition.acquire()
+      changePasswordFailed = messageReceived["contents"]["error"]
+      condition.notify_all()
+      condition.release()
     elif messageReceived["action"] == "changedVisibleUsername":
       globalVariables["shownUsername"] = messageReceived["contents"]["visibleUsername"]

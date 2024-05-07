@@ -6,12 +6,12 @@ level0Layout = {
   Text(): ["freesansbold.ttf", 30, "Use the arrow keys to move!", [0, 0, 0], [149, 168], 1, None], 
   Ground(): [620, 324, 59, 78], 
   Text(): ["freesansbold.ttf", 30, "Use the space key to jump!", [0, 0, 0], [648, 169], 1, None], 
-  Enemy(): [1241, 360, 30, 40], 
-  Text(): ["freesansbold.ttf", 30, "Avoid the pink!", [0, 0, 0], [1269, 227], 1, None], 
-  Ground(): [1800, 262, 39, 136], 
+  Enemy(): [1263, 380, 15, 20], 
+  Text(): ["freesansbold.ttf", 30, "Avoid the pink!", [0, 0, 0], [1270, 227], 1, None], 
+  Ground(): [1800, 250, 39, 150], 
   Ground(): [1800, 400, 36, 10], 
   Text(): ["freesansbold.ttf", 30, "Hold shift to move faster!", [0, 0, 0], [1822, 176], 1, None], 
-  Ground(): [1261, 401, 1437, 98], 
+  Ground(): [1261, 400, 1437, 100],
   Text(): ["freesansbold.ttf", 30, "Touch the goal to win the level!", [0, 0, 0], [2526, 228], 1, None],
   EndGoal(): [2630, 347, 39]
 }

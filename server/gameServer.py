@@ -1,3 +1,4 @@
+# Messages priority: Update player, start/stop jump, talk, update status, join/leave game, update settings, save progress, join/leave party, anonymous mode on/off, sign out, login, sign up, delete save, change username, change password, delete account, debug server
 import pygame
 import socket
 import threading
@@ -283,6 +284,28 @@ def runServer(server: socket.socket):
           playerAddresses.append((messageReceived["contents"]["newUsername"], addressReceived[1]))
           saveAccounts()
           sendMessage(server, {"action":"usernameChanged", "contents":{"newUsername":messageReceived["contents"]["newUsername"]}}, addressReceived)
+        else:
+          sendMessage(server, {"action":"usernameChangeFailed", "contents":{"error":"Password is incorrect"}}, addressReceived)
+      else:
+        sendMessage(server, {"action":"usernameChangeFailed", "contents":{"error":"Username already exists"}}, addressReceived)
+
+    elif messageReceived["action"] == "changePassword":
+      if messageReceived["contents"]["username"] in playerAccounts:
+        try:
+          passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["oldPassword"])
+        except argon2.exceptions.VerificationError:
+          passwordMatches = False
+        except argon2.exceptions.InvalidHashError:
+          passwordMatches = False
+        except argon2.exceptions.VerifyMismatchError:
+          passwordMatches = False
+
+        if passwordMatches:
+          playerAccounts[messageReceived["contents"]["username"]]["password"] = messageReceived["contents"]["newPassword"]
+          saveAccounts()
+          sendMessage(server, {"action":"passwordChanged"}, addressReceived)
+        else:
+          sendMessage(server, {"action":"passwordChangeFailed", "contents":{"error":"Password is incorrect"}}, addressReceived)
 
     elif messageReceived["action"] == "deleteAccount":
       playerAddresses.remove(addressReceived)

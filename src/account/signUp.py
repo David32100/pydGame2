@@ -48,21 +48,23 @@ def signUp():
       if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
         break
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
-        if password == reenteredPassword:
-          sendAMessage({"action":"signUp", "contents":{"username":username, "password":argon2.PasswordHasher().hash(password)}})
-          condition.acquire()
-          condition.wait(1.5)
+        if len(password) > 0:
+          if password == reenteredPassword:
+            sendAMessage({"action":"signUp", "contents":{"username":username, "password":argon2.PasswordHasher().hash(password)}})
+            condition.acquire()
+            condition.wait(1.5)
 
-          if globalVariables["username"] != None:
-            globalVariables["veiwingHomeScreen"] = True
-            break
+            if globalVariables["username"] != None:
+              globalVariables["veiwingHomeScreen"] = True
+              break
+            else:
+              errorMessage = "Account already exists."
+            
+            condition.release()
           else:
-            errorMessage = "Account already exists."
-          
-          condition.release()
+            errorMessage = "Password doesn't match re-entered password."
         else:
-          errorMessage = "Password doesn't match re-entered password."
-
+          errorMessage = "Password needs to be at least one character."
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 255, 255):
         currentTextBox = "username"
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 254, 255):
