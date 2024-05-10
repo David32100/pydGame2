@@ -4,7 +4,7 @@ from game.jumper import jumper
 from account.login import writeInTextBox
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import sendAMessage, shutdownGame
+from client.communications import sendAMessage, shutdownGame, condition
 from homeScreen.settingsScreen.generalSettings import drawVolumeScreen, drawReportScreen, drawCreditsScreen, drawResetSettingsScreen, drawDeleteSaveScreen, drawUninstallGameScreen
 from homeScreen.settingsScreen.playerSettings import drawPlayerColorScreen, drawAnonymousModeScreen, drawHideTextChatScreen
 from homeScreen.settingsScreen.accountSettings import drawAccountInfoScreen, drawChangeUsernameScreen, drawChangePasswordScreen, drawLogOutScreen, drawDeleteAccountScreen
@@ -19,6 +19,7 @@ def drawSettingsText(writeText):
   writeText("freesansbold.ttf", 30, "Settings", (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 280, (globalVariables["screenHeight"] / 2) - 210))
 
 def settings():
+  global error
   newUserSettings = globalVariables["userSettings"]
   changingSettings = True
   checkMouse = False
@@ -105,6 +106,8 @@ def settings():
       if currentTextBox == None:
         password = ""
         newUsername = ""
+      elif currentTextBox == "break":
+        break
 
     elif currentSettingsBox == "Change password":
       currentTextBox = drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBox)
@@ -112,6 +115,8 @@ def settings():
       if currentTextBox == None:
         oldPassword = ""
         newPassword = ""
+      elif currentTextBox == "break":
+        break
 
     elif currentSettingsBox == "Log out":
       changingSettings = drawLogOutScreen(checkMouse)
@@ -171,12 +176,69 @@ def settings():
       elif screenColor == (0, 0, 127, 255):
         changingSettings = False
         sendAMessage({"action":"updateSettings", "contents":{"settings":newUserSettings, "username":globalVariables["username"]}})
+        condition.acquire()
+        l = 0
+
+        while l < 4:
+          if not condition.wait(1):
+            sendAMessage({"action":"updateSettings", "contents":{"settings":newUserSettings, "username":globalVariables["username"]}})
+            l += 1
+          else:
+            break
+        
+        condition.release()
+        
+        if l == 4:
+          globalVariables["veiwingHomeScreen"] = False
+          globalVariables["loggingIn"] = True
+          globalVariables["username"] = None
+          globalVariables["connectedToServer"] = False
+          break
+        
         globalVariables["userSettings"] = newUserSettings
+        pygame.mixer.music.set_volume(globalVariables["userSettings"]["volume"] / 100)
         
         if globalVariables["userSettings"]["anonymous"]:
           sendAMessage({"action":"anonymousModeOn", "contents":{"username":globalVariables["username"]}})
+          condition.acquire()
+          l = 0
+
+          while l < 4:
+            if not condition.wait(1):
+              sendAMessage({"action":"anonymousModeOn", "contents":{"username":globalVariables["username"]}})
+              l += 1
+            else:
+              break
+          
+          condition.release()
+          
+          if l == 4:
+            globalVariables["veiwingHomeScreen"] = False
+            globalVariables["loggingIn"] = True
+            globalVariables["username"] = None
+            globalVariables["connectedToServer"] = False
+            break
+
         else:
           sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
+          condition.acquire()
+          l = 0
+
+          while l < 4:
+            if not condition.wait(1):
+              sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
+              l += 1
+            else:
+              break
+          
+          condition.release()
+          
+          if l == 4:
+            globalVariables["veiwingHomeScreen"] = False
+            globalVariables["loggingIn"] = True
+            globalVariables["username"] = None
+            globalVariables["connectedToServer"] = False
+            break
 
         jumper.resetJumper()
 
@@ -188,7 +250,6 @@ def settings():
     writeText("freesansbold.ttf", 30, "Controls", (0, 0, 0), (globalVariables["screenWidth"] - 87.5, 28))
     writeText("freesansbold.ttf", 30, "Back", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 5)) + 62.5, 452))
     writeText("freesansbold.ttf", 30, "Save", (0, 0, 0), ((globalVariables["screenWidth"] / 4) + 62.5, 452))
-
     pygame.display.flip()
 
 settingsEvent = (boxColor, settings)

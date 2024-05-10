@@ -46,7 +46,12 @@ def login():
   username = ""
   password = ""
   currentTextBox = None
-  error = ""
+
+  if globalVariables["connectedToServer"]:
+    error = ""
+  else:
+    error = "Could not contact server, please check your WiFi"
+    globalVariables["connectedToServer"] = True
 
   while True:
     for event in pygame.event.get():
@@ -78,16 +83,26 @@ def login():
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
         sendAMessage({"action":"login", "contents":{"username":username, "password":password}})
         condition.acquire()
-        condition.wait(1.5)
+        l = 0
 
-        if globalVariables["username"] != None:
+        while l < 3:
+          if not condition.wait(1.5):
+            sendAMessage({"action":"login", "contents":{"username":username, "password":password}})
+            l += 1
+          else:
+            break
+        
+        condition.release()
+        
+        if l == 3:
+          error = "Could not contact server, please check your WiFi"
+        elif globalVariables["username"] != None:
           globalVariables["veiwingHomeScreen"] = True
           break
         else:
           from client.communications import loginFailed
           error = loginFailed
 
-        condition.release()
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 255, 255):
         currentTextBox = "username"
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 255, 254, 255):

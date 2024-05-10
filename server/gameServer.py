@@ -1,4 +1,3 @@
-# Messages priority: Update player, start/stop jump, talk, update status, join/leave game, update settings, save progress, join/leave party, anonymous mode on/off, sign out, login, sign up, delete save, change username, change password, delete account, debug server
 import pygame
 import socket
 import threading
@@ -38,10 +37,14 @@ def saveAccounts():
     file.write(json.dumps(playerAccounts))
 
 def shutDownServer(server: socket.socket):
-  global playerAddresses
+  global playerAddresses, playerAccounts
 
-  for address in playerAddresses:
-    sendMessage(server, {"action":"leaveServer"}, address)
+  try:
+    for address in playerAddresses:
+      sendMessage(server, {"action":"leaveServer"}, address)
+      playerAccounts[address[0]]["loggedIn"] = False
+  except:
+    pass
 
   print("Shutting down server...")
   saveAccounts()
@@ -109,6 +112,7 @@ def runServer(server: socket.socket):
 
     elif messageReceived["action"] == "joinServer":
       playerAddresses.append(addressReceived)
+      sendMessage(server, {"action":"serverJoined"}, addressReceived)
 
     elif messageReceived["action"] == "anonymousModeOn":
       i = 0
@@ -198,7 +202,8 @@ def runServer(server: socket.socket):
       
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         sendMessage(server, {"action":"deletePlayer", "contents":messageReceived["contents"]}, player)
-        
+      
+      sendMessage(server, {"action":"leftGame"}, addressReceived)
       time.sleep(0.1)
 
     elif messageReceived["action"] == "leaveServer":
@@ -208,6 +213,9 @@ def runServer(server: socket.socket):
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
           sendMessage(server, messageReceived, player)
+        else:
+          sendMessage(server, {"action":"jumped"}, addressReceived)
+
     elif messageReceived["action"] == "updateStatus":
       if messageReceived["contents"]["party"] != None:
         for player in list(parties[messageReceived["contents"]["party"]].keys()):
@@ -220,6 +228,7 @@ def runServer(server: socket.socket):
               parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]][2] = messageReceived["contents"]["discoveredLevels"]
             
             parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]][1] = messageReceived["contents"]["status"]
+            sendMessage(server, {"action":"statusUpdated"}, addressReceived)
             
     elif messageReceived["action"] == "joinParty":
       if messageReceived["contents"]["party"] in parties:
@@ -237,6 +246,7 @@ def runServer(server: socket.socket):
 
     elif messageReceived["action"] == "leaveParty":
       parties[messageReceived["contents"]["party"]].pop(messageReceived["contents"]["username"])
+      sendMessage(server, {"action":"partyLeft"}, addressReceived)
 
       for player in list(parties[messageReceived["contents"]["party"]].values()):
         sendMessage(server, {"action":"partyDeletePlayer", "contents":{"player":(messageReceived["contents"]["username"], addressReceived)}}, player[0])
@@ -248,6 +258,8 @@ def runServer(server: socket.socket):
       for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
         if player != addressReceived:
           sendMessage(server, messageReceived, player)
+        else:
+          sendMessage(server, {"action":"talking"}, addressReceived)
 
     elif messageReceived["action"] == "saveProgress":
       if messageReceived["contents"]["username"] in playerAccounts:
@@ -259,6 +271,7 @@ def runServer(server: socket.socket):
 
     elif messageReceived["action"] == "signOut":
       playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = False
+      sendMessage(server, {"action":"signedOut"}, addressReceived)
 
     elif messageReceived["action"] == "deleteSave":
       playerAccounts[messageReceived["contents"]["username"]]["discoveredLevels"] = 0
@@ -310,16 +323,20 @@ def runServer(server: socket.socket):
     elif messageReceived["action"] == "deleteAccount":
       playerAddresses.remove(addressReceived)
       playerAccounts.pop(messageReceived["contents"]["username"])
+      sendMessage(server, {"action":"accountDeleted"}, addressReceived)
       saveAccounts()
 
     elif messageReceived["action"] == "updateSettings":
       playerAccounts[messageReceived["contents"]["username"]]["settings"] = messageReceived["contents"]["settings"]
+      sendMessage(server, {"action":"settingsSaved"}, addressReceived)
       saveAccounts()
 
     elif messageReceived["action"] == "anonymousModeOff":
       if messageReceived["contents"]["username"] in anonymousPlayers:
         anonymousPlayers.pop(messageReceived["contents"]["username"])
-        sendMessage(server, {"action":"changedVisibleUsername", "contents":{"visibleUsername":messageReceived["contents"]["username"]}}, addressReceived)
+
+      sendMessage(server, {"action":"changedVisibleUsername", "contents":{"visibleUsername":messageReceived["contents"]["username"]}}, addressReceived)
+      
 
 def manageGameServer():
   host, port = "127.0.0.1", 36848

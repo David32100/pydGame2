@@ -3,7 +3,7 @@ import time
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import sendAMessage, shutdownGame
+from client.communications import sendAMessage, shutdownGame, condition
 
 boxColor = (0, 0, 255, 255)
 veiwingPlayer = None
@@ -53,6 +53,26 @@ def joinParty():
         if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
           if canJoinParty:
             sendAMessage({"action":"joinParty", "contents":{"party":code, "username":globalVariables["username"], "status":globalVariables["status"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
+            condition.acquire()
+            condition.wait(1)
+            l = 0
+
+            while l < 4:
+              if not condition.wait(1):
+                sendAMessage({"action":"joinParty", "contents":{"party":code, "username":globalVariables["username"], "status":globalVariables["status"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
+                l += 1
+              else:
+                break
+            
+            condition.release()
+
+            if l == 4:
+              globalVariables["veiwingHomeScreen"] = False
+              globalVariables["loggingIn"] = True
+              globalVariables["username"] = None
+              globalVariables["connectedToServer"] = False
+              break
+
             canJoinParty = False
             choosingParty = False
 
@@ -101,7 +121,26 @@ def joinParty():
           if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
             veiwingPlayer = None
             sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
-            time.sleep(0.5)
+            condition.acquire()
+            condition.wait(1)
+            l = 0
+
+            while l < 4:
+              if not condition.wait(1):
+                sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
+                l += 1
+              else:
+                break
+            
+            condition.release()
+
+            if l == 4:
+              globalVariables["veiwingHomeScreen"] = False
+              globalVariables["loggingIn"] = True
+              globalVariables["username"] = None
+              globalVariables["connectedToServer"] = False
+              break
+
             choosingParty = False
             canJoinParty = True
             globalVariables["party"] = None

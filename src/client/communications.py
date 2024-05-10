@@ -47,24 +47,60 @@ def receiveMessages():
     return ({"actions":None}, None)
   
 def shutdownGame():
-  sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
-  
   if globalVariables["party"] != None:
     sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
 
-  globalVariables["status"] = "Offline"
+  sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
   sendAMessage({"action":"saveProgress", "contents":{"username":globalVariables["username"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
   sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
   sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
+  condition.acquire()
+  condition.wait(1)
+  l = 0
+
+  while l < 4:
+    if not condition.wait(1):
+      if globalVariables["party"] != None:
+        sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
+
+      sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
+      sendAMessage({"action":"saveProgress", "contents":{"username":globalVariables["username"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
+      sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
+      sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
+      l += 1
+    else:
+      break
+  
+  condition.release()
+  globalVariables["status"] = "Offline"
   shutdownGameClient()
   pygame.quit()
   sys.exit()
 
 def leaveLobby(jumper):
   globalVariables["veiwingHomeScreen"] = True
+  sendAMessage({"action":"leaveGame", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"]}})
+  condition.acquire()
+  condition.wait(1)
+  l = 0
+
+  while l < 4:
+    if not condition.wait(1):
+      sendAMessage({"action":"leaveGame", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"]}})
+      l += 1
+    else:
+      break
+  
+  condition.release()
+
+  if l == 4:
+    globalVariables["veiwingHomeScreen"] = False
+    globalVariables["loggingIn"] = True
+    globalVariables["username"] = None
+    globalVariables["connectedToServer"] = False
+    
   globalVariables["playingGame"] = False
   jumper.resetJumper()
-  sendAMessage({"action":"leaveGame", "contents":{"username":globalVariables["username"], "lobby":globalVariables["lobby"]}})
   globalVariables["lobby"] = None
   globalVariables["status"] = "Not in game"
   globalVariables["playersInLobby"] = {}
@@ -75,13 +111,16 @@ def receiveAndManageMessages():
 
   while True:
     try:
-      messageReceived, addressReceived = receiveMessages()
+      messageReceived = receiveMessages()[0]
     except json.decoder.JSONDecodeError:
       print("JSON decoder error: src/client/communications.py Ln 76 in receiveAndManageMessage")
       break
 
     if messageReceived["action"] == "joinedLobby":
+      condition.acquire()
       globalVariables["lobby"] = messageReceived["contents"]["lobby"]
+      condition.notify_all()
+      condition.release()
     elif messageReceived["action"] == "updatePlayer":
       if messageReceived["contents"]["username"] in globalVariables["playersInLobby"]:
         globalVariables["playersInLobby"][messageReceived["contents"]["username"]].updateJumper(messageReceived["contents"]["position"][0], messageReceived["contents"]["position"][1])
@@ -101,8 +140,11 @@ def receiveAndManageMessages():
     
       globalVariables["playersInParty"][messageReceived["contents"]["username"]][1] = messageReceived["contents"]["status"]
     elif messageReceived["action"] == "partyJoined":
+      condition.acquire()
       globalVariables["party"] = messageReceived["contents"]["party"]
       globalVariables["playersInParty"] = messageReceived["contents"]["playersInParty"]
+      condition.notify_all()
+      condition.release()
     elif messageReceived["action"] == "playerJoinedParty":
       globalVariables["playersInParty"] = messageReceived["contents"]["playersInParty"]
     elif messageReceived["action"] == "partyDeletePlayer":
@@ -160,21 +202,18 @@ def receiveAndManageMessages():
         "jumping": False,
         "timers": {},
         "userSettings": {"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}},
-        "shownUsername": None
+        "shownUsername": None,
+        "connectedToServer": False
       }
     elif messageReceived["action"] == "usernameChanged":
+      condition.acquire()
       globalVariables["username"] = messageReceived["contents"]["newUsername"]
       globalVariables["shownUsername"] = globalVariables["username"]
-      condition.acquire()
       condition.notify_all()
       condition.release()
     elif messageReceived["action"] == "usernameChangeFailed":
       condition.acquire()
       changeUsernameFailed = messageReceived["contents"]["error"]
-      condition.notify_all()
-      condition.release()
-    elif messageReceived["action"] == "passwordChanged":
-      condition.acquire()
       condition.notify_all()
       condition.release()
     elif messageReceived["action"] == "passwordChangeFailed":
@@ -183,4 +222,11 @@ def receiveAndManageMessages():
       condition.notify_all()
       condition.release()
     elif messageReceived["action"] == "changedVisibleUsername":
+      condition.acquire()
       globalVariables["shownUsername"] = messageReceived["contents"]["visibleUsername"]
+      condition.notify_all()
+      condition.release()
+    elif messageReceived["action"] == "passwordChanged" or messageReceived["action"] == "settingsSaved" or messageReceived["action"] == "serverJoined" or messageReceived["action"] == "accountDeleted" or messageReceived["action"] == "signedOut" or messageReceived["action"] == "statusUpdated" or messageReceived["action"] == "partyLeft" or messageReceived["action"] == "jumped" or messageReceived["action"] == "talking" or messageReceived["action"] == "leftGame":
+      condition.acquire()
+      condition.notify_all()
+      condition.release()

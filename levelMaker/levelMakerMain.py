@@ -222,7 +222,7 @@ while True:
       i = 0
 
       for key in list(levelLayout.keys()):
-        levelLayoutToPrint[str(key).split(".")[1].split(" ")[0] + "()" + str(i)] = levelLayout[key]
+        levelLayoutToPrint[str(type(key)).split(".")[1] + "()" + str(i)] = levelLayout[key]
         i += 1
 
       with open("levelMaker/level.JSON", "w") as writeFile:
@@ -312,10 +312,10 @@ while True:
           lastPoint = []  
       elif currentObstacle == "Delete":
         for obstacle in list(levelLayout.keys()):
-          if str(obstacle).split(".")[1].split(" ")[0] == "EndGoal":
+          if str(type(obstacle)).split(".")[1] == "EndGoal":
             if mouseX - scroll > levelLayout[obstacle][0] - levelLayout[obstacle][2] and mouseX - scroll < levelLayout[obstacle][0] + levelLayout[obstacle][2] and mouseY > levelLayout[obstacle][1] - levelLayout[obstacle][2] and mouseY < levelLayout[obstacle][1] + levelLayout[obstacle][2]:
               levelLayout.pop(obstacle)
-          elif str(obstacle).split(".")[1].split(" ")[0] == "Text":
+          elif str(type(obstacle)).split(".")[1] == "Text":
             textSize = pygame.font.Font(levelLayout[obstacle][0], levelLayout[obstacle][1]).size(levelLayout[obstacle][2])
             
             if mouseX - scroll > levelLayout[obstacle][4][0] - textSize[0] / 2 and mouseX - scroll < levelLayout[obstacle][4][0] + textSize[0] / 2 and mouseY > levelLayout[obstacle][4][1] - textSize[1] / 2 and mouseY < levelLayout[obstacle][4][1] + textSize[1] / 2:

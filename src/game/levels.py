@@ -1,4 +1,4 @@
-from game.obstacles import Ground, EndGoal, Enemy, Text
+from game.obstacles import Ground, EndGoal, Enemy, Text, HeavyBox
 
 level0Layout = {
   Ground(): [0, 400, 1261, 100], 
@@ -16,13 +16,13 @@ level0Layout = {
   EndGoal(): [2630, 347, 39]
 }
 
-level1Layout = {}
-level2Layout = {}
-level3Layout = {}
-level4Layout = {}
-level5Layout = {}
-level6Layout = {}
-level7Layout = {}
+level1Layout = {EndGoal(): [100, 400, 40]}
+level2Layout = {EndGoal(): [150, 400, 40]}
+level3Layout = {EndGoal(): [50, 400, 40]}
+level4Layout = {EndGoal(): [100, 400, 40]}
+level5Layout = {EndGoal(): [150, 400, 5]}
+level6Layout = {EndGoal(): [150, 200, 40]}
+level7Layout = {EndGoal(): [100, 200, 40]}
 
 level8Layout = {
   Ground(): [0, 101, 140, 58], 

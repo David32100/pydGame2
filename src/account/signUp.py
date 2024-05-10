@@ -52,15 +52,25 @@ def signUp():
           if password == reenteredPassword:
             sendAMessage({"action":"signUp", "contents":{"username":username, "password":argon2.PasswordHasher().hash(password)}})
             condition.acquire()
-            condition.wait(1.5)
+            l = 0
 
-            if globalVariables["username"] != None:
+            while l < 3:
+              if not condition.wait(1.5):
+                sendAMessage({"action":"signUp", "contents":{"username":username, "password":argon2.PasswordHasher().hash(password)}})
+                l += 1
+              else:
+                break
+            
+            condition.release()
+            
+            if l == 3:
+              errorMessage = "Could not contact server, please check your WiFi"
+            elif globalVariables["username"] != None:
               globalVariables["veiwingHomeScreen"] = True
               break
             else:
               errorMessage = "Account already exists."
-            
-            condition.release()
+
           else:
             errorMessage = "Password doesn't match re-entered password."
         else:

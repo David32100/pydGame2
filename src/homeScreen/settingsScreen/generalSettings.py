@@ -4,7 +4,7 @@ import sys
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import sendAMessage, shutdownGameClient
+from client.communications import sendAMessage, shutdownGameClient, condition
 
 emailPeices = []
 
@@ -67,15 +67,29 @@ def drawDeleteSaveScreen(checkMouse):
   pygame.draw.rect(globalVariables["screen"], (1, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 50, 275, 100, 50))
 
   if checkMouse and globalVariables["screen"].get_at(pygame.mouse.get_pos()) == (1, 0, 0, 255):
-    sendAMessage({"action":"deleteSave", "contents":{"username":globalVariables["username"]}})
-    globalVariables["veiwingHomeScreen"] = False
-
     if globalVariables["party"] != None:
       sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
+      globalVariables["party"] = None
 
-    globalVariables["status"] = "Offline"
     sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
+    sendAMessage({"action":"deleteSave", "contents":{"username":globalVariables["username"]}})
+    condition.acquire()
+    condition.wait(1)
+    l = 0
+
+    while l < 4:
+      if not condition.wait(1):
+        sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
+        sendAMessage({"action":"deleteSave", "contents":{"username":globalVariables["username"]}})
+        l += 1
+      else:
+        break
+    
+    condition.release()
+    globalVariables["connectedToServer"] = l != 4
+    globalVariables["status"] = "Offline"
     globalVariables["loggingIn"] = True
+    globalVariables["veiwingHomeScreen"] = False
     globalVariables["username"] = None
     return False
 
@@ -95,11 +109,26 @@ def drawUninstallGameScreen(checkMouse):
 
     if globalVariables["party"] != None:
       sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
+      globalVariables["party"] = None
 
     globalVariables["status"] = "Offline"
     sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
     sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
     sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
+    condition.acquire()
+    condition.wait(1)
+    l = 0
+
+    while l < 4:
+      if not condition.wait(1):
+        sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
+        sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
+        sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
+        l += 1
+      else:
+        break
+    
+    condition.release()
     shutdownGameClient()
     pygame.quit()
     # Change to pydGame2 on a copy of the game DO NOT DELETE THE ONLY COPY!!!

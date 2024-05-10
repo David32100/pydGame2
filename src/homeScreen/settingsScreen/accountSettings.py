@@ -2,7 +2,7 @@ import pygame
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import sendAMessage, changePasswordFailed, changeUsernameFailed, condition
+from client.communications import sendAMessage, condition
 
 usernameError = ""
 passwordError = ""
@@ -57,15 +57,29 @@ def drawChangeUsernameScreen(checkMouse, password, newUsername, currentTextBox):
         sendAMessage({"action":"changeUsername", "contents":{"password":password, "newUsername":newUsername, "username":globalVariables["username"]}})
         condition.acquire()
         condition.wait(1.5)
+        l = 0
 
-        if globalVariables["username"] == newUsername:
-          condition.release()
+        while l < 3:
+          if not condition.wait(1.5):
+            sendAMessage({"action":"changeUsername", "contents":{"password":password, "newUsername":newUsername, "username":globalVariables["username"]}})
+            l += 1
+          else:
+            break
+        
+        condition.release()
+        
+        if l == 3:
+          globalVariables["veiwingHomeScreen"] = False
+          globalVariables["loggingIn"] = True
+          globalVariables["username"] = None
+          globalVariables["connectedToServer"] = False
+          return "break"
+        elif globalVariables["username"] == newUsername:
           return None
         else:
           from client.communications import changeUsernameFailed
           usernameError = changeUsernameFailed
 
-        condition.release()
       else:
         usernameError = "Please leave the party you're in"
     else:
@@ -74,7 +88,7 @@ def drawChangeUsernameScreen(checkMouse, password, newUsername, currentTextBox):
   return currentTextBox
 
 def drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBox):
-  global passwordError, changePasswordFailed
+  global passwordError
   writeText("freesansbold.ttf", 35, "Change password", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 100))
   writeText("freesansbold.ttf", 30, "Change your password.", (0, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 125))
   writeText("freesansbold.ttf", 30, "This can't be undone!", (255, 0, 0), (globalVariables["screenWidth"] * (3 / 4), 150))
@@ -104,9 +118,25 @@ def drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBo
         sendAMessage({"action":"changePassword", "contents":{"oldPassword":oldPassword, "newPassword":newPassword, "username":globalVariables["username"]}})
         condition.acquire()
         condition.wait(1.5)
-        from client.communications import changePasswordFailed
+        l = 0
 
-        if changePasswordFailed == "":
+        while l < 3:
+          if not condition.wait(1.5):
+            sendAMessage({"action":"changePassword", "contents":{"oldPassword":oldPassword, "newPassword":newPassword, "username":globalVariables["username"]}})
+            l += 1
+          else:
+            break
+        
+        condition.release()
+        from client.communications import changePasswordFailed
+        
+        if l == 3:
+          globalVariables["veiwingHomeScreen"] = False
+          globalVariables["loggingIn"] = True
+          globalVariables["username"] = None
+          globalVariables["connectedToServer"] = False
+          return "break"
+        elif changePasswordFailed == "":
           condition.release()
           return None
         else:
@@ -126,18 +156,32 @@ def drawLogOutScreen(checkMouse):
   pygame.draw.rect(globalVariables["screen"], (1, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 50, 275, 100, 50))
 
   if checkMouse and globalVariables["screen"].get_at(pygame.mouse.get_pos()) == (1, 0, 0, 255):
-    globalVariables["veiwingHomeScreen"] = False
-    globalVariables["loggingIn"] = True
-
     if globalVariables["party"] != None:
       sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
       globalVariables["party"] = None
 
-    globalVariables["status"] = "Offline"
     sendAMessage({"action":"saveProgress", "contents":{"username":globalVariables["username"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
     sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
     sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
+    condition.acquire()
+    condition.wait(1)
+    l = 0
+
+    while l < 4:
+      if not condition.wait(1):
+        sendAMessage({"action":"saveProgress", "contents":{"username":globalVariables["username"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
+        sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
+        sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
+        l += 1
+      else:
+        break
+    
+    condition.release()
+    globalVariables["connectedToServer"] = (l != 4)
     globalVariables["username"] = None
+    globalVariables["status"] = "Offline"
+    globalVariables["veiwingHomeScreen"] = False
+    globalVariables["loggingIn"] = True
     return False
 
   writeText("freesansbold.ttf", 30, "Log out", (255, 255, 255), (globalVariables["screenWidth"] * (3 / 4), 300))
@@ -155,6 +199,19 @@ def drawDeleteAccountScreen(checkMouse):
       sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
 
     sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
+    condition.acquire()
+    condition.wait(1)
+    l = 0
+
+    while l < 4:
+      if not condition.wait(1):
+        sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
+        l += 1
+      else:
+        break
+    
+    condition.release()
+    globalVariables["connectedToServer"] = l != 4
     globalVariables["veiwingHomeScreen"] = False
     globalVariables["status"] = "Offline"
     globalVariables["loggingIn"] = True
