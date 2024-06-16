@@ -1,34 +1,36 @@
+import eventlet.wsgi
 import pygame
-import socket
-import threading
-import time
+import socketio
+import eventlet
+import sys
 import json
 import argon2
+import time
+import random
 
 playerAccounts = []
-playerAddresses = []
+anonymousPlayers = {}
+rooms = {}
+server = None
+onlinePlayers = {}
 
-def createUdpServer(host: str, port: int) -> socket.socket:
-  newSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  newSocket.bind((host, port))
-  return newSocket
+def createServer() -> tuple[socketio.Server, socketio.WSGIApp]:
+  newServer = socketio.Server()
+  newApp = socketio.WSGIApp(newServer)
+  return (newServer, newApp)
 
-def receiveMessage(server: socket.socket):
-  messageReceived, addressReceived = server.recvfrom(1024)
-  decodedMessageReceived = json.loads(messageReceived.decode("utf-8"))
-  message, sender = decodedMessageReceived
-  return message, (sender, addressReceived)
+def sendMessage(message, sidOrRoom: str|list, skipSid: str|list|None=None):
+  global server
+  print("Sending to:", sidOrRoom, "\nMessage:", message)
+  server.send(message, sidOrRoom, skip_sid=skipSid)
 
-def sendMessage(server: socket.socket, message: str, address):
-  server.sendto(json.dumps([message, address[0]]).encode("utf-8"), address[1])
-
-def askToStopServer(server: socket.socket):
+def askToStopServer():
   stop = input("Stop Server (Y): \n")
 
   while stop != "Y":
     stop = input("Stop Server (Y): \n")
 
-  shutDownServer(server) 
+  shutDownServer() 
 
 def saveAccounts():
   with open("server/accounts.JSON", "w") as file:
@@ -36,20 +38,11 @@ def saveAccounts():
     file.truncate(0)
     file.write(json.dumps(playerAccounts))
 
-def shutDownServer(server: socket.socket):
-  global playerAddresses, playerAccounts
-
-  try:
-    for address in playerAddresses:
-      sendMessage(server, {"action":"leaveServer"}, address)
-      playerAccounts[address[0]]["loggedIn"] = False
-  except:
-    pass
-
+def shutDownServer():
+  global playerAccounts
   print("Shutting down server...")
   saveAccounts()
-  server.shutdown(socket.SHUT_RDWR)
-  server.close()
+  sys.exit()
 
 def updateServer() -> dict:
   try:
@@ -62,224 +55,20 @@ def updateServer() -> dict:
   
   return accounts
 
-def runServer(server: socket.socket):
-  global playerAccounts, playerAddresses
-  playerAccounts = updateServer()
-  lobbies = {}
-  parties = {}
-  anonymousPlayers = {}
+# rooms = {"party (no ' _ ') ":{sid:[usrnm, stts, DL, CL], sid:[usrnm, stts, DL, CL]}, "lobby":[(usrnm, sid), (usrnm, sid)]}, anonymousPlayers = {"usrnm":"anon+#"}
+def manageMessage(sid: str, messageReceived):
+  global playerAccounts, rooms, anonymousPlayers, onlinePlayers
 
-  while True:
-    messageReceived, addressReceived = receiveMessage(server)
+  if messageReceived["action"] == "updatePlayer":
+    sendMessage(messageReceived, messageReceived["contents"]["lobby"], sid)
 
-    if messageReceived["action"] == "updatePlayer":
-      if messageReceived["contents"]["username"] in anonymousPlayers:
-        messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
-          
-      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
-        if player != addressReceived:
-          sendMessage(server, messageReceived, player)
-
-    elif messageReceived["action"] == "login":
-      if messageReceived["contents"]["username"] in playerAccounts:
-        if playerAccounts[messageReceived["contents"]["username"]]["banned"] != False:
-          sendMessage(server, {"action":"loginFailed", "contents":{"error":"Banned: " + playerAccounts[messageReceived["contents"]["username"]]["banned"]}}, addressReceived)
-        elif playerAccounts[messageReceived["contents"]["username"]]["loggedIn"]:
-          sendMessage(server, {"action":"loginFailed", "contents":{"error":"User already logged in"}}, addressReceived)
-        else:
-          try:
-            passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["password"])
-          except argon2.exceptions.VerificationError:
-            passwordMatches = False
-          except argon2.exceptions.InvalidHashError:
-            passwordMatches = False
-          except argon2.exceptions.VerifyMismatchError:
-            passwordMatches = False
-          
-          if passwordMatches:
-            sendMessage(server, {"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, addressReceived)
-            playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = True
-          else:
-            sendMessage(server, {"action":"loginFailed", "contents":{"error":"Username or password is incorrect"}}, addressReceived)
+  elif messageReceived["action"] == "login":
+    if messageReceived["contents"]["username"] in playerAccounts:
+      if playerAccounts[messageReceived["contents"]["username"]]["banned"] != False:
+        sendMessage({"action":"loginFailed", "contents":{"error":"Banned: " + playerAccounts[messageReceived["contents"]["username"]]["banned"]}}, sid)
+      elif playerAccounts[messageReceived["contents"]["username"]]["loggedIn"]:
+        sendMessage({"action":"loginFailed", "contents":{"error":"User already logged in"}}, sid)
       else:
-        sendMessage(server, {"action":"loginFailed", "contents":{"error":"Username or password is incorrect"}}, addressReceived)
-
-    elif messageReceived["action"] == "signUp":
-      if not messageReceived["contents"]["username"] in playerAccounts:
-        playerAccounts[messageReceived["contents"]["username"]] = {"banned": False, "loggedIn": True, "username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0, "settings":{"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}}}
-        sendMessage(server, {"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, addressReceived)
-        saveAccounts()
-
-    elif messageReceived["action"] == "joinServer":
-      playerAddresses.append(addressReceived)
-      sendMessage(server, {"action":"serverJoined"}, addressReceived)
-
-    elif messageReceived["action"] == "anonymousModeOn":
-      i = 0
-
-      while True:
-        if not "anonymousPlayer" + str(i) in list(anonymousPlayers.values()):
-          anonymousPlayers[messageReceived["contents"]["username"]] = "anonymousPlayer" + str(i)
-          sendMessage(server, {"action":"changedVisibleUsername", "contents":{"visibleUsername":"anonymousPlayer" + str(i)}}, addressReceived)
-          break
-        else:
-          i += 1
-
-    elif messageReceived["action"] == "debugServer":
-      try:
-        try:
-          with open("server/fixServer.txt", "r") as file:
-            program = eval(file.read())
-
-          try:
-            func = program["action"]
-            args = program["args"]
-            try:
-              func(*args)
-            except UnboundLocalError:
-              print("Debug error: Could not run function:", type(func), func, "with args:", type(args), args)
-              print(e)
-          except OSError as e:
-            print("Debug error: Function or arguments not found in:", type(program), program)
-            print(e)
-        except FileNotFoundError:
-          print("Debug error: File not found")
-      except:
-        print("Debug error: An unknown error occured.")
-        
-    elif messageReceived["action"] == "joinGame":
-      if messageReceived["contents"]["lobby"] != None:
-        lobbies[messageReceived["contents"]["lobby"]][messageReceived["contents"]["username"]] = addressReceived
-
-        if messageReceived["contents"]["username"] in anonymousPlayers:
-          messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
-        
-        for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
-          if player != addressReceived:
-            sendMessage(server, {"action":"updatePlayer", "contents": messageReceived["contents"]}, player)
-          else:
-            sendMessage(server, {"action":"joinedLobby", "contents":{"lobby":messageReceived["contents"]["lobby"]}}, player)
-      else:
-        searchingForLobby = True
-        i = 1
-        
-        while searchingForLobby:
-          if not (str(i) + "_" + str(messageReceived["contents"]["currentLevel"])) in lobbies:
-            lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])] = {messageReceived["contents"]["username"]: addressReceived}
-            searchingForLobby = False
-          else:
-            if messageReceived["contents"]["party"] != None:
-              if len(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) < 9 - len(parties[messageReceived["contents"]["party"]]):
-                lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])][messageReceived["contents"]["username"]] = addressReceived
-                searchingForLobby = False
-              else:
-                i += 1
-            else:
-              if len(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) < 8:
-                lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])][messageReceived["contents"]["username"]] = addressReceived
-                searchingForLobby = False
-              else:
-                i += 1
-
-          if messageReceived["contents"]["party"] != None:
-            for person in parties[messageReceived["contents"]["party"]]:
-              if parties[messageReceived["contents"]["party"]][person][0] != addressReceived and parties[messageReceived["contents"]["party"]][person][1] != "In game":
-                sendMessage(server, {"action":"joinGame", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}, parties[messageReceived["contents"]["party"]][person][0])
-        
-        for player in list(lobbies[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])].values()):
-          if player != addressReceived:
-            if messageReceived["contents"]["username"] in anonymousPlayers:
-              messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
-            sendMessage(server, {"action":"updatePlayer", "contents": messageReceived["contents"]}, player)
-          else:
-            sendMessage(server, {"action":"joinedLobby", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}, player)
-
-    elif messageReceived["action"] == "leaveGame":
-      lobbies[messageReceived["contents"]["lobby"]].pop(messageReceived["contents"]["username"])
-
-      if messageReceived["contents"]["username"] in anonymousPlayers:
-        messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
-      
-      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
-        sendMessage(server, {"action":"deletePlayer", "contents":messageReceived["contents"]}, player)
-      
-      sendMessage(server, {"action":"leftGame"}, addressReceived)
-      time.sleep(0.1)
-
-    elif messageReceived["action"] == "leaveServer":
-      playerAddresses.remove(addressReceived)
-
-    elif messageReceived["action"] == "startJump" or messageReceived["action"] == "stopJump":
-      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
-        if player != addressReceived:
-          sendMessage(server, messageReceived, player)
-        else:
-          sendMessage(server, {"action":"jumped"}, addressReceived)
-
-    elif messageReceived["action"] == "updateStatus":
-      if messageReceived["contents"]["party"] != None:
-        for player in list(parties[messageReceived["contents"]["party"]].keys()):
-          if player != messageReceived["contents"]["username"]:
-            sendMessage(server, {"action":"updatePlayerStatus", "contents":messageReceived["contents"]}, parties[messageReceived["contents"]["party"]][player][0])
-          else:
-            if "currentLevel" in messageReceived["contents"]:
-              parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]][3] = messageReceived["contents"]["currentLevel"]
-            if "discoveredLevels" in messageReceived["contents"]:
-              parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]][2] = messageReceived["contents"]["discoveredLevels"]
-            
-            parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]][1] = messageReceived["contents"]["status"]
-            sendMessage(server, {"action":"statusUpdated"}, addressReceived)
-            
-    elif messageReceived["action"] == "joinParty":
-      if messageReceived["contents"]["party"] in parties:
-        if len(parties[messageReceived["contents"]["party"]]) < 8:
-          parties[messageReceived["contents"]["party"]][messageReceived["contents"]["username"]] = [addressReceived, messageReceived["contents"]["status"], messageReceived["contents"]["discoveredLevels"], messageReceived["contents"]["currentLevel"]]
-          
-          for playerInfo in list(parties[messageReceived["contents"]["party"]].values()):
-            if playerInfo[0] == addressReceived:
-              sendMessage(server, {"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"], "playersInParty":parties[messageReceived["contents"]["party"]]}}, addressReceived)
-            else:
-              sendMessage(server, {"action":"playerJoinedParty", "contents":{"party":messageReceived["contents"]["party"], "playersInParty":parties[messageReceived["contents"]["party"]]}}, playerInfo[0])
-      else:
-        parties[messageReceived["contents"]["party"]] = {messageReceived["contents"]["username"]: [addressReceived, messageReceived["contents"]["status"], messageReceived["contents"]["discoveredLevels"], messageReceived["contents"]["currentLevel"]]}
-        sendMessage(server, {"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"], "playersInParty":parties[messageReceived["contents"]["party"]]}}, addressReceived)
-
-    elif messageReceived["action"] == "leaveParty":
-      parties[messageReceived["contents"]["party"]].pop(messageReceived["contents"]["username"])
-      sendMessage(server, {"action":"partyLeft"}, addressReceived)
-
-      for player in list(parties[messageReceived["contents"]["party"]].values()):
-        sendMessage(server, {"action":"partyDeletePlayer", "contents":{"player":(messageReceived["contents"]["username"], addressReceived)}}, player[0])
-
-    elif messageReceived["action"] == "talk":
-      if messageReceived["contents"]["username"] in anonymousPlayers:
-        messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
-
-      for player in list(lobbies[messageReceived["contents"]["lobby"]].values()):
-        if player != addressReceived:
-          sendMessage(server, messageReceived, player)
-        else:
-          sendMessage(server, {"action":"talking"}, addressReceived)
-
-    elif messageReceived["action"] == "saveProgress":
-      if messageReceived["contents"]["username"] in playerAccounts:
-        playerAccounts[messageReceived["contents"]["username"]]["username"] = messageReceived["contents"]["username"]
-        playerAccounts[messageReceived["contents"]["username"]]["discoveredLevels"] = messageReceived["contents"]["discoveredLevels"]
-        playerAccounts[messageReceived["contents"]["username"]]["currentLevel"] = messageReceived["contents"]["currentLevel"]
-        playerAccounts[messageReceived["contents"]["username"]]["settings"]["anonymous"] = False
-        saveAccounts()
-
-    elif messageReceived["action"] == "signOut":
-      playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = False
-      sendMessage(server, {"action":"signedOut"}, addressReceived)
-
-    elif messageReceived["action"] == "deleteSave":
-      playerAccounts[messageReceived["contents"]["username"]]["discoveredLevels"] = 0
-      playerAccounts[messageReceived["contents"]["username"]]["currentLevel"] = 0
-      saveAccounts()
-
-    elif messageReceived["action"] == "changeUsername":
-      if messageReceived["contents"]["username"] in playerAccounts and not messageReceived["contents"]["newUsername"] in playerAccounts:
         try:
           passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["password"])
         except argon2.exceptions.VerificationError:
@@ -288,72 +77,263 @@ def runServer(server: socket.socket):
           passwordMatches = False
         except argon2.exceptions.VerifyMismatchError:
           passwordMatches = False
-
+        
         if passwordMatches:
-          playerAccounts[messageReceived["contents"]["newUsername"]] = playerAccounts[messageReceived["contents"]["username"]]
-          playerAccounts[messageReceived["contents"]["newUsername"]]["username"] = messageReceived["contents"]["newUsername"]
-          playerAccounts.pop(messageReceived["contents"]["username"])
-          playerAddresses.remove(addressReceived)
-          playerAddresses.append((messageReceived["contents"]["newUsername"], addressReceived[1]))
-          saveAccounts()
-          sendMessage(server, {"action":"usernameChanged", "contents":{"newUsername":messageReceived["contents"]["newUsername"]}}, addressReceived)
+          sendMessage({"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, sid)
+          playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = True
+          onlinePlayers[sid] = messageReceived["contents"]["username"]
         else:
-          sendMessage(server, {"action":"usernameChangeFailed", "contents":{"error":"Password is incorrect"}}, addressReceived)
-      else:
-        sendMessage(server, {"action":"usernameChangeFailed", "contents":{"error":"Username already exists"}}, addressReceived)
+          sendMessage({"action":"loginFailed", "contents":{"error":"Username or password is incorrect"}}, sid)
+    else:
+      time.sleep(random.randint(1, 5))
+      sendMessage({"action":"loginFailed", "contents":{"error":"Username or password is incorrect"}}, sid)
 
-    elif messageReceived["action"] == "changePassword":
-      if messageReceived["contents"]["username"] in playerAccounts:
-        try:
-          passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["oldPassword"])
-        except argon2.exceptions.VerificationError:
-          passwordMatches = False
-        except argon2.exceptions.InvalidHashError:
-          passwordMatches = False
-        except argon2.exceptions.VerifyMismatchError:
-          passwordMatches = False
-
-        if passwordMatches:
-          playerAccounts[messageReceived["contents"]["username"]]["password"] = messageReceived["contents"]["newPassword"]
-          saveAccounts()
-          sendMessage(server, {"action":"passwordChanged"}, addressReceived)
-        else:
-          sendMessage(server, {"action":"passwordChangeFailed", "contents":{"error":"Password is incorrect"}}, addressReceived)
-
-    elif messageReceived["action"] == "deleteAccount":
-      playerAddresses.remove(addressReceived)
-      playerAccounts.pop(messageReceived["contents"]["username"])
-      sendMessage(server, {"action":"accountDeleted"}, addressReceived)
+  elif messageReceived["action"] == "signUp":
+    if not messageReceived["contents"]["username"] in playerAccounts and len(messageReceived["contents"]["password"]) > 0:
+      playerAccounts[messageReceived["contents"]["username"]] = {"banned": False, "loggedIn": True, "username":messageReceived["contents"]["username"], "password":messageReceived["contents"]["password"], "discoveredLevels":0, "currentLevel":0, "settings":{"volume":100, "playerColor":(0, 0, 255), "anonymous":False, "hideTextChat":False, "controls":{"jump":[pygame.K_UP, pygame.K_SPACE, pygame.K_w], "left":[pygame.K_LEFT, pygame.K_a], "right":[pygame.K_RIGHT, pygame.K_d], "talk":[pygame.K_BACKQUOTE]}}}
+      onlinePlayers[sid] = messageReceived["contents"]["username"]
+      sendMessage({"action":"loggedIn", "contents":{"accountInformation":playerAccounts[messageReceived["contents"]["username"]]}}, sid)
       saveAccounts()
 
-    elif messageReceived["action"] == "updateSettings":
-      playerAccounts[messageReceived["contents"]["username"]]["settings"] = messageReceived["contents"]["settings"]
-      sendMessage(server, {"action":"settingsSaved"}, addressReceived)
-      saveAccounts()
+  elif messageReceived["action"] == "anonymousModeOn":
+    i = 0
 
-    elif messageReceived["action"] == "anonymousModeOff":
-      if messageReceived["contents"]["username"] in anonymousPlayers:
-        anonymousPlayers.pop(messageReceived["contents"]["username"])
-
-      sendMessage(server, {"action":"changedVisibleUsername", "contents":{"visibleUsername":messageReceived["contents"]["username"]}}, addressReceived)
+    while True:
+      if not "anonymousPlayer" + str(i) in list(anonymousPlayers.values()):
+        anonymousPlayers[messageReceived["contents"]["username"]] = "anonymousPlayer" + str(i)
+        sendMessage({"action":"changedVisibleUsername", "contents":{"visibleUsername":"anonymousPlayer" + str(i)}}, sid)
+        break
       
+      i += 1
 
-def manageGameServer():
-  host, port = "127.0.0.1", 36848
-  socket1 = createUdpServer(host, port)
-  threading.Thread(target=askToStopServer, args=(socket1,)).start()
+  elif messageReceived["action"] == "debugServer":
+    try:
+      try:
+        with open("server/fixServer.txt", "r") as file:
+          program = eval(file.read())
+
+        try:
+          func = program["action"]
+          args = program["args"]
+          try:
+            func(*args)
+          except UnboundLocalError:
+            print("Debug error: Could not run function:", type(func), func, "with args:", type(args), args)
+            print(e)
+        except OSError as e:
+          print("Debug error: Function or arguments not found in:", type(program), program)
+          print(e)
+      except FileNotFoundError:
+        print("Debug error: File not found")
+    except:
+      print("Debug error: An unknown error occured.")
+      
+  elif messageReceived["action"] == "joinGame":
+    if messageReceived["contents"]["lobby"] == None:
+      i = 0
+
+      while True:
+        if not str(i) + "_" + str(messageReceived["contents"]["currentLevel"]) in rooms:
+          server.enter_room(sid, str(i) + "_" + str(messageReceived["contents"]["currentLevel"]))
+          rooms[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])] = [(messageReceived["contents"]["username"], sid)]
+          break
+        else:
+          if messageReceived["party"] == None:
+            if len(rooms[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) < 8:
+              server.enter_room(sid, str(i) + "_" + str(messageReceived["contents"]["currentLevel"]))
+              rooms[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])].append((messageReceived["contents"]["username"], sid))
+              break
+          elif len(rooms[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])]) <= 8 - len(rooms[messageReceived["contents"]["party"]]):
+            server.enter_room(sid, str(i) + "_" + str(messageReceived["contents"]["currentLevel"]))
+            rooms[str(i) + "_" + str(messageReceived["contents"]["currentLevel"])].append((messageReceived["contents"]["username"], sid))
+            break
+        
+        i += 1
+      
+      if messageReceived["contents"]["party"] != None:
+        for person in rooms[messageReceived["contents"]["party"]]:
+          if person != sid and rooms[messageReceived["contents"]["party"]][person][1] != "In game":
+            sendMessage({"action":"joinGame", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}, person)
+
+      sendMessage({"action":"joinedLobby", "contents":{"lobby":str(i) + "_" + str(messageReceived["contents"]["currentLevel"])}}, sid)
+      messageReceived["contents"]["lobby"] = str(i) + "_" + str(messageReceived["contents"]["currentLevel"])
+    else:
+      server.enter_room(sid, messageReceived["contents"]["lobby"])
+      rooms[messageReceived["contents"]["lobby"]] = [(messageReceived["contents"]["username"], sid)]
+      sendMessage({"action":"joinedLobby", "contents":{"lobby":messageReceived["contents"]["lobby"]}}, sid)
+
+    if messageReceived["contents"]["username"] in anonymousPlayers:
+      messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
+
+    sendMessage({"action":"updatePlayer", "contents": messageReceived["contents"]}, rooms[messageReceived["contents"]["lobby"]], sid)
+  elif messageReceived["action"] == "leaveGame":
+    server.leave_room(sid, messageReceived["contents"]["lobby"])
+    rooms[messageReceived["contents"]["lobby"]].remove((messageReceived["contents"]["username"], sid))
+
+    if messageReceived["contents"]["username"] in anonymousPlayers:
+      messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
+    
+    sendMessage({"action":"deletePlayer", "contents":messageReceived["contents"]}, messageReceived["contents"]["lobby"], sid)
+    sendMessage({"action":"leftGame"}, sid)
+
+  elif messageReceived["action"] == "startJump" or messageReceived["action"] == "stopJump":
+    sendMessage(messageReceived, messageReceived["contents"]["lobby"], sid)
+    sendMessage({"action":"jumped"}, sid)
+
+  elif messageReceived["action"] == "updateStatus":
+    if messageReceived["contents"]["party"] != None:
+      messageReceived["contents"]["username"] = sid
+      sendMessage({"action":"updatePlayerStatus", "contents":messageReceived["contents"]}, messageReceived["contents"]["party"], sid)
+ 
+      if "currentLevel" in messageReceived["contents"]:
+        rooms[messageReceived["contents"]["party"]][sid][3] = messageReceived["contents"]["currentLevel"]
+      if "discoveredLevels" in messageReceived["contents"]:
+        rooms[messageReceived["contents"]["party"]][sid][2] = messageReceived["contents"]["discoveredLevels"]
+      
+      rooms[messageReceived["contents"]["party"]][sid][1] = messageReceived["contents"]["status"]
+      
+  elif messageReceived["action"] == "joinParty":
+    if messageReceived["contents"]["party"] in rooms:
+      if len(rooms[messageReceived["contents"]["party"]]) < 8:
+        server.enter_room(sid, messageReceived["contents"]["party"])
+        rooms[messageReceived["contents"]["party"]][sid] = [messageReceived["contents"]["username"], messageReceived["contents"]["status"], messageReceived["contents"]["discoveredLevels"], messageReceived["contents"]["currentLevel"]]
+        sendMessage({"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"], "playersInParty":rooms[messageReceived["contents"]["party"]]}}, sid)
+        sendMessage({"action":"playerJoinedParty", "contents":{"party":messageReceived["contents"]["party"], "playersInParty":rooms[messageReceived["contents"]["party"]]}}, messageReceived["contents"]["party"], sid)
+    else:
+      server.enter_room(sid, messageReceived["contents"]["party"])
+      rooms[messageReceived["contents"]["party"]] = {sid: [messageReceived["contents"]["username"], messageReceived["contents"]["status"], messageReceived["contents"]["discoveredLevels"], messageReceived["contents"]["currentLevel"]]}
+      sendMessage({"action":"partyJoined", "contents":{"party":messageReceived["contents"]["party"], "playersInParty":rooms[messageReceived["contents"]["party"]]}}, sid)
+
+  elif messageReceived["action"] == "leaveParty":
+    server.leave_room(sid, messageReceived["contents"]["party"])
+    rooms[messageReceived["contents"]["party"]].pop(sid)
+    sendMessage({"action":"partyLeft"}, sid)
+    sendMessage({"action":"partyDeletePlayer", "contents":{"party":rooms[messageReceived["contents"]["party"]]}}, messageReceived["contents"]["party"])
+
+  elif messageReceived["action"] == "talk":
+    if messageReceived["contents"]["username"] in anonymousPlayers:
+      messageReceived["contents"]["username"] = anonymousPlayers[messageReceived["contents"]["username"]]
+      sendMessage(messageReceived, messageReceived["contents"]["lobby"], sid)
+      sendMessage({"action":"talking"}, sid)
+
+  elif messageReceived["action"] == "saveProgress":
+    if messageReceived["contents"]["username"] in playerAccounts:
+      playerAccounts[messageReceived["contents"]["username"]]["username"] = messageReceived["contents"]["username"]
+      playerAccounts[messageReceived["contents"]["username"]]["discoveredLevels"] = messageReceived["contents"]["discoveredLevels"]
+      playerAccounts[messageReceived["contents"]["username"]]["currentLevel"] = messageReceived["contents"]["currentLevel"]
+      playerAccounts[messageReceived["contents"]["username"]]["settings"]["anonymous"] = False
+      saveAccounts()
+
+  elif messageReceived["action"] == "signOut":
+    playerAccounts[messageReceived["contents"]["username"]]["loggedIn"] = False
+
+  elif messageReceived["action"] == "deleteSave":
+    playerAccounts[messageReceived["contents"]["username"]]["discoveredLevels"] = 0
+    playerAccounts[messageReceived["contents"]["username"]]["currentLevel"] = 0
+    saveAccounts()
+
+  elif messageReceived["action"] == "changeUsername":
+    if messageReceived["contents"]["username"] in playerAccounts and not messageReceived["contents"]["newUsername"] in playerAccounts:
+      try:
+        passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["password"])
+      except argon2.exceptions.VerificationError:
+        passwordMatches = False
+      except argon2.exceptions.InvalidHashError:
+        passwordMatches = False
+      except argon2.exceptions.VerifyMismatchError:
+        passwordMatches = False
+
+      if passwordMatches:
+        playerAccounts[messageReceived["contents"]["newUsername"]] = playerAccounts[messageReceived["contents"]["username"]]
+        playerAccounts[messageReceived["contents"]["newUsername"]]["username"] = messageReceived["contents"]["newUsername"]
+        playerAccounts.pop(messageReceived["contents"]["username"])
+        saveAccounts()
+        sendMessage({"action":"usernameChanged", "contents":{"newUsername":messageReceived["contents"]["newUsername"]}}, sid)
+      else:
+        sendMessage({"action":"usernameChangeFailed", "contents":{"error":"Password is incorrect"}}, sid)
+    else:
+      sendMessage({"action":"usernameChangeFailed", "contents":{"error":"Username already exists"}}, sid)
+
+  elif messageReceived["action"] == "changePassword":
+    if messageReceived["contents"]["username"] in playerAccounts:
+      try:
+        passwordMatches = argon2.PasswordHasher().verify(playerAccounts[messageReceived["contents"]["username"]]["password"], messageReceived["contents"]["oldPassword"])
+      except argon2.exceptions.VerificationError:
+        passwordMatches = False
+      except argon2.exceptions.InvalidHashError:
+        passwordMatches = False
+      except argon2.exceptions.VerifyMismatchError:
+        passwordMatches = False
+
+      if passwordMatches:
+        playerAccounts[messageReceived["contents"]["username"]]["password"] = messageReceived["contents"]["newPassword"]
+        saveAccounts()
+        sendMessage({"action":"passwordChanged"}, sid)
+      else:
+        sendMessage({"action":"passwordChangeFailed", "contents":{"error":"Password is incorrect"}}, sid)
+
+  elif messageReceived["action"] == "deleteAccount":
+    playerAccounts.pop(messageReceived["contents"]["username"])
+    saveAccounts()
+
+  elif messageReceived["action"] == "updateSettings":
+    playerAccounts[messageReceived["contents"]["username"]]["settings"] = messageReceived["contents"]["settings"]
+    saveAccounts()
+
+  elif messageReceived["action"] == "anonymousModeOff":
+    if messageReceived["contents"]["username"] in anonymousPlayers:
+      anonymousPlayers.pop(messageReceived["contents"]["username"])
+
+    sendMessage({"action":"changedVisibleUsername", "contents":{"visibleUsername":messageReceived["contents"]["username"]}}, sid)
+
+def startServer(app: socketio.WSGIApp, host: str, port: int):
+  eventlet.wsgi.server(eventlet.listen((host, port)), app)
+
+def protectedMessageManager(sid, messageReceived):
+  global onlinePlayers, playerAccounts
 
   try:
-    runServer(socket1)
+    manageMessage(sid, messageReceived)
   except OSError as e:
-    print(e)
+    print(e, "\nAttempting to kick out players...")
 
     try:
-      shutDownServer(socket1)
+      for username in list(onlinePlayers.values()):
+        if username != None:
+          playerAccounts[username]["loggedIn"] = False
+      
+      saveAccounts()
     except:
-      print("Error occured: Server doesn't exist.")
-    
-    time.sleep(1)
-    print("Server shut down.")
+      print("Attempt failed.")
+  except:
+    print("An unknown error occured: gameServer.py startServer() \nAttempting to kick out players...")
+
+    try:
+      for username in list(onlinePlayers.values()):
+        if username != None:
+          playerAccounts[username]["loggedIn"] = False
+      
+      saveAccounts()
+    except:
+      print("Attempt failed.")
+
+def logPlayer(sid, _, __):
+  global onlinePlayers
+  onlinePlayers[sid] = None
+
+def removePlayer(sid):
+  global onlinePlayers
+  onlinePlayers.pop(sid)
+
+def manageGameServer():
+  global server
+  global playerAccounts
+  playerAccounts = updateServer()
+  server, app = createServer()
+
+  server.on("connect", logPlayer)
+  server.on("disconnect", removePlayer)
+  server.on("message", protectedMessageManager)
+  startServer(app, "", 5000)
 
 manageGameServer()

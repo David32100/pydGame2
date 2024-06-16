@@ -4,7 +4,7 @@ from game.jumper import jumper
 from account.login import writeInTextBox
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import sendAMessage, shutdownGame, condition
+from client.communications import sendAMessage, shutdownGame
 from homeScreen.settingsScreen.generalSettings import drawVolumeScreen, drawReportScreen, drawCreditsScreen, drawResetSettingsScreen, drawDeleteSaveScreen, drawUninstallGameScreen
 from homeScreen.settingsScreen.playerSettings import drawPlayerColorScreen, drawAnonymousModeScreen, drawHideTextChatScreen
 from homeScreen.settingsScreen.accountSettings import drawAccountInfoScreen, drawChangeUsernameScreen, drawChangePasswordScreen, drawLogOutScreen, drawDeleteAccountScreen
@@ -176,70 +176,14 @@ def settings():
       elif screenColor == (0, 0, 127, 255):
         changingSettings = False
         sendAMessage({"action":"updateSettings", "contents":{"settings":newUserSettings, "username":globalVariables["username"]}})
-        condition.acquire()
-        l = 0
-
-        while l < 4:
-          if not condition.wait(1):
-            sendAMessage({"action":"updateSettings", "contents":{"settings":newUserSettings, "username":globalVariables["username"]}})
-            l += 1
-          else:
-            break
-        
-        condition.release()
-        
-        if l == 4:
-          globalVariables["veiwingHomeScreen"] = False
-          globalVariables["loggingIn"] = True
-          globalVariables["username"] = None
-          globalVariables["connectedToServer"] = False
-          break
-        
         globalVariables["userSettings"] = newUserSettings
         pygame.mixer.music.set_volume(globalVariables["userSettings"]["volume"] / 100)
         
         if globalVariables["userSettings"]["anonymous"]:
           sendAMessage({"action":"anonymousModeOn", "contents":{"username":globalVariables["username"]}})
-          condition.acquire()
-          l = 0
-
-          while l < 4:
-            if not condition.wait(1):
-              sendAMessage({"action":"anonymousModeOn", "contents":{"username":globalVariables["username"]}})
-              l += 1
-            else:
-              break
-          
-          condition.release()
-          
-          if l == 4:
-            globalVariables["veiwingHomeScreen"] = False
-            globalVariables["loggingIn"] = True
-            globalVariables["username"] = None
-            globalVariables["connectedToServer"] = False
-            break
-
         else:
           sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
-          condition.acquire()
-          l = 0
-
-          while l < 4:
-            if not condition.wait(1):
-              sendAMessage({"action":"anonymousModeOff", "contents":{"username":globalVariables["username"]}})
-              l += 1
-            else:
-              break
           
-          condition.release()
-          
-          if l == 4:
-            globalVariables["veiwingHomeScreen"] = False
-            globalVariables["loggingIn"] = True
-            globalVariables["username"] = None
-            globalVariables["connectedToServer"] = False
-            break
-
         jumper.resetJumper()
 
       checkMouse = False

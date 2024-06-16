@@ -1,8 +1,10 @@
 import pygame
+import time
+import argon2
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import sendAMessage, condition
+from client.communications import sendAMessage
 
 usernameError = ""
 passwordError = ""
@@ -55,26 +57,9 @@ def drawChangeUsernameScreen(checkMouse, password, newUsername, currentTextBox):
     elif screenColor == (1, 0, 0, 255):
       if globalVariables["party"] == None:
         sendAMessage({"action":"changeUsername", "contents":{"password":password, "newUsername":newUsername, "username":globalVariables["username"]}})
-        condition.acquire()
-        condition.wait(1.5)
-        l = 0
+        time.sleep(1)
 
-        while l < 3:
-          if not condition.wait(1.5):
-            sendAMessage({"action":"changeUsername", "contents":{"password":password, "newUsername":newUsername, "username":globalVariables["username"]}})
-            l += 1
-          else:
-            break
-        
-        condition.release()
-        
-        if l == 3:
-          globalVariables["veiwingHomeScreen"] = False
-          globalVariables["loggingIn"] = True
-          globalVariables["username"] = None
-          globalVariables["connectedToServer"] = False
-          return "break"
-        elif globalVariables["username"] == newUsername:
+        if globalVariables["username"] == newUsername:
           return None
         else:
           from client.communications import changeUsernameFailed
@@ -115,34 +100,14 @@ def drawChangePasswordScreen(checkMouse, oldPassword, newPassword, currentTextBo
       return "newPassword"
     elif screenColor == (1, 0, 0, 255):
       if len(newPassword) > 0:
-        sendAMessage({"action":"changePassword", "contents":{"oldPassword":oldPassword, "newPassword":newPassword, "username":globalVariables["username"]}})
-        condition.acquire()
-        condition.wait(1.5)
-        l = 0
-
-        while l < 3:
-          if not condition.wait(1.5):
-            sendAMessage({"action":"changePassword", "contents":{"oldPassword":oldPassword, "newPassword":newPassword, "username":globalVariables["username"]}})
-            l += 1
-          else:
-            break
-        
-        condition.release()
+        sendAMessage({"action":"changePassword", "contents":{"oldPassword":oldPassword, "newPassword":argon2.PasswordHasher().hash(newPassword), "username":globalVariables["username"]}})
         from client.communications import changePasswordFailed
         
-        if l == 3:
-          globalVariables["veiwingHomeScreen"] = False
-          globalVariables["loggingIn"] = True
-          globalVariables["username"] = None
-          globalVariables["connectedToServer"] = False
-          return "break"
-        elif changePasswordFailed == "":
-          condition.release()
+        if changePasswordFailed == "":
           return None
         else:
           passwordError = changePasswordFailed
 
-        condition.release()
       else:
         passwordError = "Password is too short"
     else:
@@ -163,21 +128,7 @@ def drawLogOutScreen(checkMouse):
     sendAMessage({"action":"saveProgress", "contents":{"username":globalVariables["username"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
     sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
     sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
-    condition.acquire()
-    condition.wait(1)
-    l = 0
 
-    while l < 4:
-      if not condition.wait(1):
-        sendAMessage({"action":"saveProgress", "contents":{"username":globalVariables["username"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
-        sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
-        sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
-        l += 1
-      else:
-        break
-    
-    condition.release()
-    globalVariables["connectedToServer"] = (l != 4)
     globalVariables["username"] = None
     globalVariables["status"] = "Offline"
     globalVariables["veiwingHomeScreen"] = False
@@ -199,19 +150,6 @@ def drawDeleteAccountScreen(checkMouse):
       sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
 
     sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
-    condition.acquire()
-    condition.wait(1)
-    l = 0
-
-    while l < 4:
-      if not condition.wait(1):
-        sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
-        l += 1
-      else:
-        break
-    
-    condition.release()
-    globalVariables["connectedToServer"] = l != 4
     globalVariables["veiwingHomeScreen"] = False
     globalVariables["status"] = "Offline"
     globalVariables["loggingIn"] = True

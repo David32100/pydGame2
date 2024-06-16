@@ -1,22 +1,12 @@
-import socket
+import socketio
 
-def createUdpClient() -> socket.socket:
-  return socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+def createClient() -> socketio.Client:
+  return socketio.Client(reconnection_attempts=5, reconnection_delay=1)
 
-def sendMessage(client: socket.socket, message: bytes, host: str, port: int):
-  client.sendto(message, (host, port))
+def sendMessage(client: socketio.Client, message: str):
+  client.send(message)
 
-def receiveMessage(client: socket.socket):
-  dataReceived = client.recvfrom(1024)
-  return dataReceived[0], dataReceived[1]
-
-def shutDownClient(client: socket.socket):
+def shutDownClient(client: socketio.Client):
   print("Shutting down client...")
-
-  try:
-    client.shutdown(socket.SHUT_RDWR)
-    client.close()
-  except OSError:
-    print("Client shut down with error.")
-  else:
-    print("Client shut down.")
+  client.disconnect()
+  print("Client shut down.")

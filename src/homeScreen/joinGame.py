@@ -1,6 +1,6 @@
 import time
 
-from client.communications import sendAMessage, condition
+from client.communications import sendAMessage
 from globalVariables import globalVariables
 from game.jumper import jumper
 
@@ -17,24 +17,7 @@ def joinGame(lobby:str=None):
   globalVariables["veiwingHomeScreen"] = False
   globalVariables["playingGame"] = True
   sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":globalVariables["party"], "lobby":lobby, "anonymous":globalVariables["userSettings"]["anonymous"]}})
-  condition.acquire()
-  condition.wait(1.5)
-  l = 0
-
-  while l < 3:
-    if not condition.wait(1.5):
-      sendAMessage({"action":"joinGame","contents":{"username": globalVariables["username"], "position":(jumper.jumperXWithScroll, jumper.jumperY), "currentLevel": globalVariables["currentLevel"], "party":globalVariables["party"], "lobby":lobby, "anonymous":globalVariables["userSettings"]["anonymous"]}})
-      l += 1
-    else:
-      break
-  
-  condition.release()
-
-  if l == 3:
-    globalVariables["veiwingHomeScreen"] = False
-    globalVariables["loggingIn"] = True
-    globalVariables["username"] = None
-    globalVariables["connectedToServer"] = False
+  time.sleep(1)
 
   globalVariables["status"] = "In game"
   jumper.resetJumper()

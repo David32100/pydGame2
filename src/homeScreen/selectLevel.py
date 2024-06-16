@@ -3,7 +3,7 @@ import pygame
 from globalVariables import globalVariables
 from game.levels import levels
 from drawingFunctions import writeText
-from client.communications import sendAMessage, shutdownGame, condition
+from client.communications import sendAMessage, shutdownGame
 
 boxColor = (0, 255, 0, 255)
 
@@ -67,25 +67,6 @@ def drawSelectLevel():
           if globalVariables["screen"].get_at((mouseX, mouseY)) == (r, g, 0, 255):
             globalVariables["currentLevel"] = (g * 255) + r
             sendAMessage({"action":"updateStatus", "contents":{"party":globalVariables["party"], "status":globalVariables["status"], "currentLevel":globalVariables["currentLevel"], "username":globalVariables["username"]}})
-            condition.acquire()
-            condition.wait(1)
-            l = 0
-
-            while l < 4:
-              if not condition.wait(1):
-                sendAMessage({"action":"updateStatus", "contents":{"party":globalVariables["party"], "status":globalVariables["status"], "currentLevel":globalVariables["currentLevel"], "username":globalVariables["username"]}})
-                l += 1
-              else:
-                break
-            
-            condition.release()
-
-            if l == 4:
-              globalVariables["veiwingHomeScreen"] = False
-              globalVariables["loggingIn"] = True
-              globalVariables["username"] = None
-              globalVariables["connectedToServer"] = False
-              break
             selectingLevel = False
 
             if globalVariables["party"] != None:

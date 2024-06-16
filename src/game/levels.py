@@ -16,7 +16,26 @@ level0Layout = {
   EndGoal(): [2630, 347, 39]
 }
 
-level1Layout = {EndGoal(): [100, 400, 40]}
+level1Layout = {
+  EndGoal(): [1870, 210, 35], 
+  Ground(): [0, 460, 700, 40], 
+  Ground(): [220, 320, 120, 140], 
+  Enemy(): [120, 240, 80, 60], 
+  Enemy(): [340, 320, 100, 60], 
+  Ground(): [400, 260, 140, 60],
+  Ground(): [240, 180, 100, 70], 
+  Enemy(): [220, 160, 100, 90],
+  Ground(): [400, 80, 980, 40], 
+  Enemy(): [480, 70, 80, 10], 
+  Enemy(): [690, 75, 115, 10], 
+  Enemy(): [940, 70, 120, 10], 
+  Enemy(): [1380, 120, 90, 60],
+  Ground(): [1520, 165, 160, 100],
+  Ground(): [1760, 260, 140, 100], 
+  Enemy(): [1760, 250, 80, 10], 
+  Text(): ["freesansbold.ttf", 30, "Jacob's level!", [0, 0, 0], [110, 90], 1, None]
+}
+
 level2Layout = {EndGoal(): [150, 400, 40]}
 level3Layout = {EndGoal(): [50, 400, 40]}
 level4Layout = {EndGoal(): [100, 400, 40]}
@@ -75,7 +94,7 @@ level11Layout = {
 }
 
 level0 = [0, 2000, level0Layout, 80, 350]
-level1 = [1, 5000, level1Layout, 100, 100]
+level1 = [1, 1950, level1Layout, 80, 400]
 level2 = [2, 5000, level2Layout, 100, 100]
 level3 = [3, 5000, level3Layout, 100, 100]
 level4 = [4, 5000, level4Layout, 100, 100]

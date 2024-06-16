@@ -3,7 +3,7 @@ import sys
 import time
 import argon2
 
-from client.communications import shutdownGameClient, sendAMessage, condition
+from client.communications import shutdownGameClient, sendAMessage
 from account.login import writeInTextBox
 from globalVariables import globalVariables
 from drawingFunctions import writeText
@@ -51,21 +51,9 @@ def signUp():
         if len(password) > 0:
           if password == reenteredPassword:
             sendAMessage({"action":"signUp", "contents":{"username":username, "password":argon2.PasswordHasher().hash(password)}})
-            condition.acquire()
-            l = 0
-
-            while l < 3:
-              if not condition.wait(1.5):
-                sendAMessage({"action":"signUp", "contents":{"username":username, "password":argon2.PasswordHasher().hash(password)}})
-                l += 1
-              else:
-                break
+            time.sleep(1)
             
-            condition.release()
-            
-            if l == 3:
-              errorMessage = "Could not contact server, please check your WiFi"
-            elif globalVariables["username"] != None:
+            if globalVariables["username"] != None:
               globalVariables["veiwingHomeScreen"] = True
               break
             else:

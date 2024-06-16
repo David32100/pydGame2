@@ -2,7 +2,7 @@ import pygame
 
 from globalVariables import globalVariables
 from game.levels import levels
-from client.communications import sendAMessage, leaveLobby, condition
+from client.communications import sendAMessage, leaveLobby
 from drawingFunctions import writeText
  
 sendJumpingMessage = False
@@ -45,23 +45,6 @@ def updateJumperPosition(jumper, keydownEvent:pygame.event.Event):
     if keyPressed["jump"]:
       if jumper.canMove:
         sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
-        condition.acquire()
-        l = 0
-
-        while l < 2:
-          if not condition.wait(0.25):
-            sendAMessage({"action":"startJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
-            l += 1
-          else:
-            break
-        
-        condition.release()
-
-        if l == 2:
-          globalVariables["playingGame"] = False
-          globalVariables["loggingIn"] = True
-          globalVariables["username"] = None
-          globalVariables["connectedToServer"] = False
 
       if keyMods & pygame.KMOD_SHIFT and jumper.checkJumperCollision(yDisplacement=1)["Bottom"]:
         jumpHeight = 1
@@ -76,23 +59,6 @@ def updateJumperPosition(jumper, keydownEvent:pygame.event.Event):
     else:
       jumper.stopJumping()
       sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
-      condition.acquire()
-      l = 0
-
-      while l < 2:
-        if not condition.wait(0.3):
-          sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
-          l += 1
-        else:
-          break
-      
-      condition.release()
-
-      if l == 2:
-        globalVariables["playingGame"] = False
-        globalVariables["loggingIn"] = True
-        globalVariables["username"] = None
-        globalVariables["connectedToServer"] = False
 
   if keyPressed["left"]:
     if keyMods & pygame.KMOD_SHIFT and jumper.checkJumperCollision(yDisplacement=1)["Bottom"]:
@@ -142,24 +108,6 @@ def updateJumperPosition(jumper, keydownEvent:pygame.event.Event):
 
     if pressedKeys[pygame.K_RETURN]:
       sendAMessage({"action":"talk", "contents":{"username":globalVariables["username"], "text":text, "lobby":globalVariables["lobby"]}})
-      condition.acquire()
-      l = 0
-
-      while l < 4:
-        if not condition.wait(0.5):
-          sendAMessage({"action":"talk", "contents":{"username":globalVariables["username"], "text":text, "lobby":globalVariables["lobby"]}})
-          l += 1
-        else:
-          break
-      
-      condition.release()
-
-      if l == 4:
-        globalVariables["playingGame"] = False
-        globalVariables["loggingIn"] = True
-        globalVariables["username"] = None
-        globalVariables["connectedToServer"] = False
-
       globalVariables["timers"][str(globalVariables["username"]) + "'sTalkingTimer"] = [0, text]
       jumper.canMove = True
       jumper.talking = False

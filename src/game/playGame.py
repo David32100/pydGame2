@@ -5,7 +5,7 @@ from game.drawGame import drawGameAndUpdateJumperPosition
 from game.drawWinScreen import drawWinScreen
 from globalVariables import globalVariables
 from game.jumper import jumper
-from client.communications import sendAMessage, shutdownGame, leaveLobby, condition
+from client.communications import sendAMessage, shutdownGame, leaveLobby
 
 def playGame():
   while globalVariables["playingGame"]:
@@ -17,24 +17,7 @@ def playGame():
       if event.type == pygame.QUIT:
         if globalVariables["lobby"] != None:
           sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
-          condition.acquire()
-          l = 0
-
-          while l < 4:
-            if not condition.wait(1):
-              sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
-              l += 1
-            else:
-              break
           
-          condition.release()
-
-          if l == 4:
-            globalVariables["playingGame"] = False
-            globalVariables["loggingIn"] = True
-            globalVariables["username"] = None
-            globalVariables["connectedToServer"] = False
-
         leaveLobby(jumper)
         shutdownGame()
       if event.type == pygame.KEYDOWN:
@@ -45,24 +28,6 @@ def playGame():
 
     elif not jumper.alive:
       sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
-      condition.acquire()
-      l = 0
-
-      while l < 4:
-        if not condition.wait(1):
-          sendAMessage({"action":"stopJump", "contents":{"lobby":globalVariables["lobby"], "username":globalVariables["username"]}})
-          l += 1
-        else:
-          break
-      
-      condition.release()
-
-      if l == 4:
-        globalVariables["playingGame"] = False
-        globalVariables["loggingIn"] = True
-        globalVariables["username"] = None
-        globalVariables["connectedToServer"] = False
-        
       drawDeathScreen(jumper)
 
     elif jumper.levelWon:

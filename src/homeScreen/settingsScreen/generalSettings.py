@@ -4,9 +4,7 @@ import sys
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import sendAMessage, shutdownGameClient, condition
-
-emailPeices = []
+from client.communications import sendAMessage, shutdownGameClient
 
 def drawVolumeScreen(checkMouse, newUserSettings):
   writeText("freesansbold.ttf", 35, "Volume", (0, 0, 0), ((globalVariables["screenWidth"] * (3 / 4)) - 10, 100))
@@ -73,20 +71,6 @@ def drawDeleteSaveScreen(checkMouse):
 
     sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
     sendAMessage({"action":"deleteSave", "contents":{"username":globalVariables["username"]}})
-    condition.acquire()
-    condition.wait(1)
-    l = 0
-
-    while l < 4:
-      if not condition.wait(1):
-        sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
-        sendAMessage({"action":"deleteSave", "contents":{"username":globalVariables["username"]}})
-        l += 1
-      else:
-        break
-    
-    condition.release()
-    globalVariables["connectedToServer"] = l != 4
     globalVariables["status"] = "Offline"
     globalVariables["loggingIn"] = True
     globalVariables["veiwingHomeScreen"] = False
@@ -115,20 +99,6 @@ def drawUninstallGameScreen(checkMouse):
     sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
     sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
     sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
-    condition.acquire()
-    condition.wait(1)
-    l = 0
-
-    while l < 4:
-      if not condition.wait(1):
-        sendAMessage({"action":"deleteAccount", "contents":{"username":globalVariables["username"]}})
-        sendAMessage({"action": "leaveServer", "contents":{"username":globalVariables["username"]}})
-        sendAMessage({"action": "signOut", "contents":{"username":globalVariables["username"]}})
-        l += 1
-      else:
-        break
-    
-    condition.release()
     shutdownGameClient()
     pygame.quit()
     # Change to pydGame2 on a copy of the game DO NOT DELETE THE ONLY COPY!!!

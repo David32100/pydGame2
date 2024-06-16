@@ -3,7 +3,7 @@ import time
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import sendAMessage, shutdownGame, condition
+from client.communications import sendAMessage, shutdownGame
 
 boxColor = (0, 0, 255, 255)
 veiwingPlayer = None
@@ -53,26 +53,6 @@ def joinParty():
         if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
           if canJoinParty:
             sendAMessage({"action":"joinParty", "contents":{"party":code, "username":globalVariables["username"], "status":globalVariables["status"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
-            condition.acquire()
-            condition.wait(1)
-            l = 0
-
-            while l < 4:
-              if not condition.wait(1):
-                sendAMessage({"action":"joinParty", "contents":{"party":code, "username":globalVariables["username"], "status":globalVariables["status"], "discoveredLevels":globalVariables["discoveredLevels"], "currentLevel":globalVariables["currentLevel"]}})
-                l += 1
-              else:
-                break
-            
-            condition.release()
-
-            if l == 4:
-              globalVariables["veiwingHomeScreen"] = False
-              globalVariables["loggingIn"] = True
-              globalVariables["username"] = None
-              globalVariables["connectedToServer"] = False
-              break
-
             canJoinParty = False
             choosingParty = False
 
@@ -121,26 +101,6 @@ def joinParty():
           if globalVariables["screen"].get_at((mouseX, mouseY)) == (0, 255, 0, 255):
             veiwingPlayer = None
             sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
-            condition.acquire()
-            condition.wait(1)
-            l = 0
-
-            while l < 4:
-              if not condition.wait(1):
-                sendAMessage({"action":"leaveParty", "contents":{"username":globalVariables["username"], "party":globalVariables["party"]}})
-                l += 1
-              else:
-                break
-            
-            condition.release()
-
-            if l == 4:
-              globalVariables["veiwingHomeScreen"] = False
-              globalVariables["loggingIn"] = True
-              globalVariables["username"] = None
-              globalVariables["connectedToServer"] = False
-              break
-
             choosingParty = False
             canJoinParty = True
             globalVariables["party"] = None
@@ -149,7 +109,7 @@ def joinParty():
         checkMouse = False
 
         if veiwingPlayer != None and veiwingPlayer in globalVariables["playersInParty"]:
-          writeText("freesansbold.ttf", 35, "User: " + str(veiwingPlayer), (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 50, (globalVariables["screenHeight"] / 2) - 100), 9)
+          writeText("freesansbold.ttf", 35, "User: " + str(globalVariables["playersInParty"][veiwingPlayer][0]), (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 50, (globalVariables["screenHeight"] / 2) - 100), 9)
           writeText("freesansbold.ttf", 35, "Status: " + str(globalVariables["playersInParty"][veiwingPlayer][1]), (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 50, (globalVariables["screenHeight"] / 2) - 40), 9)
           writeText("freesansbold.ttf", 35, "Discovered levels: " + str(globalVariables["playersInParty"][veiwingPlayer][2]), (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 50, (globalVariables["screenHeight"] / 2) + 20), 9)
           writeText("freesansbold.ttf", 35, "Current level: " + str(globalVariables["playersInParty"][veiwingPlayer][3]), (0, 0, 0), ((globalVariables["screenWidth"] / 2) + 50, (globalVariables["screenHeight"] / 2) + 80), 9)
@@ -160,11 +120,11 @@ def joinParty():
 
         for playerIndex in range(len(globalVariables["playersInParty"])):
           if playerIndex >= 4:
-            writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].keys())[playerIndex], (255, 255, 255), (237, 121 + 60 * (playerIndex - 4)))
+            writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].values())[playerIndex][0], (255, 255, 255), (237, 121 + 60 * (playerIndex - 4)))
             pygame.draw.line(globalVariables["screen"], (255, 255, 255), (180, 132 + 60 * (playerIndex - 4)), (295, 132 + 60 * (playerIndex - 4)))
             writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].values())[playerIndex][1], (255, 255, 255), (237, 146 + 60 * (playerIndex - 4)))
           else:
-            writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].keys())[playerIndex], (255, 255, 255), (112, 121 + 60 * playerIndex))
+            writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].values())[playerIndex][0], (255, 255, 255), (112, 121 + 60 * playerIndex))
             pygame.draw.line(globalVariables["screen"], (255, 255, 255), (55, 132 + 60 * playerIndex), (170, 132 + 60 * playerIndex))
             writeText("freesansbold.ttf", 22, list(globalVariables["playersInParty"].values())[playerIndex][1], (255, 255, 255), (112, 146 + 60 * playerIndex))
 

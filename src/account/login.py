@@ -4,7 +4,7 @@ import time
 
 from globalVariables import globalVariables
 from drawingFunctions import writeText
-from client.communications import shutdownGameClient, sendAMessage, loginFailed, condition
+from client.communications import shutdownGameClient, sendAMessage, loginFailed
 
 backspaceKeyPressed = False
 
@@ -42,16 +42,11 @@ def deleteTextLoop(originalText:str):
 
 def login():
   global loginFailed
+  error = ""
   checkMouse = False
   username = ""
   password = ""
   currentTextBox = None
-
-  if globalVariables["connectedToServer"]:
-    error = ""
-  else:
-    error = "Could not contact server, please check your WiFi"
-    globalVariables["connectedToServer"] = True
 
   while True:
     for event in pygame.event.get():
@@ -82,21 +77,9 @@ def login():
         break
       elif globalVariables["screen"].get_at((mouseX, mouseY)) == (255, 0, 0, 255):
         sendAMessage({"action":"login", "contents":{"username":username, "password":password}})
-        condition.acquire()
-        l = 0
-
-        while l < 3:
-          if not condition.wait(1.5):
-            sendAMessage({"action":"login", "contents":{"username":username, "password":password}})
-            l += 1
-          else:
-            break
+        time.sleep(1)
         
-        condition.release()
-        
-        if l == 3:
-          error = "Could not contact server, please check your WiFi"
-        elif globalVariables["username"] != None:
+        if globalVariables["username"] != None:
           globalVariables["veiwingHomeScreen"] = True
           break
         else:

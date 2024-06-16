@@ -4,7 +4,7 @@ from globalVariables import globalVariables
 from drawingFunctions import writeText
 from homeScreen.joinGame import joinGame
 from game.levels import levels
-from client.communications import sendAMessage, leaveLobby, condition
+from client.communications import sendAMessage, leaveLobby
 
 def drawWinScreen(jumper):
   globalVariables["screen"].fill((127, 127, 0))
@@ -15,23 +15,7 @@ def drawWinScreen(jumper):
   if globalVariables["currentLevel"] == globalVariables["discoveredLevels"]:
     globalVariables["discoveredLevels"] += 1
     sendAMessage({"action":"updateStatus", "contents":{"party":globalVariables["party"], "status":globalVariables["status"], "discoveredLevels":globalVariables["discoveredLevels"], "username":globalVariables["username"]}})
-    condition.acquire()
-    l = 0
-
-    while l < 4:
-      if not condition.wait(1):
-        sendAMessage({"action":"updateStatus", "contents":{"party":globalVariables["party"], "status":globalVariables["status"], "discoveredLevels":globalVariables["discoveredLevels"], "username":globalVariables["username"]}})
-        l += 1
-      else:
-        break
     
-    condition.release()
-
-    if l == 4:
-      globalVariables["playingGame"] = False
-      globalVariables["loggingIn"] = True
-      globalVariables["username"] = None
-      globalVariables["connectedToServer"] = False
     if globalVariables["party"] != None:
       globalVariables["playersInParty"][globalVariables["username"]][2] = globalVariables["discoveredLevels"]
 
