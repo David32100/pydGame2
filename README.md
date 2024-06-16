@@ -6,3 +6,5 @@ How to run the game on one computer:
 How to play the game on a different computer:
   To play the current version of the game, you need to dowload the entire project, but you have to change the url variable
   in gameClient.py to whatever url your using, then run server/gameServer.py on one computer and src/main.py on another computer.
+
+Please don't put any sensitive information as your password, your information is not fully protected (the game has not been updated to include this notice).
